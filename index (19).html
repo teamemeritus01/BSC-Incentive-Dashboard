@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BSC Incentive Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#0D6E4A;--brand-light:#E6F4EF;--brand-mid:#1a9a6c;
+  --bg:#F4F4F0;--card:#FFFFFF;--border:#E0E0D8;--border-s:#C8C8C0;
+  --text:#1A1A16;--t2:#5A5A52;--t3:#9A9A90;
+  --green:#0D6E4A;--gbg:#E6F4EF;--gtext:#0D6E4A;
+  --red:#C0392B;--rbg:#FCEAE8;--rtext:#9B2B1F;
+  --amber:#B07800;--abg:#FEF7E0;
+  --orange:#D46A00;--obg:#FEF0E0;
+  --blue:#1A6FB5;--bbg:#E8F0FB;--btext:#1A6FB5;
+  --shadow:0 1px 3px rgba(0,0,0,0.08);
+  --r:8px;--rl:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+/* TOPBAR */
+.topbar{background:var(--brand);color:white;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-logo{font-size:15px;font-weight:600;letter-spacing:.5px}
+.topbar-sub{font-size:11px;opacity:.7;margin-top:1px}
+/* UPLOAD */
+#upload-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 52px);padding:40px 24px}
+.upload-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--rl);padding:48px 56px;max-width:520px;width:100%;text-align:center;box-shadow:var(--shadow)}
+.upload-icon{width:64px;height:64px;background:var(--brand-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.upload-icon svg{width:28px;height:28px;stroke:var(--brand)}
+.upload-title{font-size:18px;font-weight:600;margin-bottom:8px}
+.upload-desc{font-size:13px;color:var(--t2);margin-bottom:28px;line-height:1.6}
+.drop-zone{border:1.5px dashed var(--border-s);border-radius:var(--r);padding:32px 24px;cursor:pointer;transition:all .2s;background:var(--bg)}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--brand);background:var(--brand-light)}
+.drop-zone p{font-size:13px;color:var(--t2);margin-top:8px}
+.drop-zone strong{color:var(--brand)}
+.btn-upload{display:inline-block;background:var(--brand);color:white;border:none;border-radius:var(--r);padding:10px 24px;font-size:14px;font-weight:500;cursor:pointer;margin-top:16px;transition:background .15s}
+.btn-upload:hover{background:#0a5a3c}
+#file-input{display:none}
+.upload-note{font-size:11px;color:var(--t3);margin-top:16px}
+/* DASHBOARD */
+#dashboard{display:none;padding:0}
+/* INFO BAR */
+.info-bar{display:flex;align-items:center;gap:10px;background:var(--card);border-bottom:.5px solid var(--border);padding:8px 24px;font-size:12px;color:var(--t2);flex-wrap:wrap}
+.info-bar .file-name{font-weight:600;color:var(--text)}
+.sep{color:var(--border-s)}
+.btn-reset{margin-left:auto;background:none;border:.5px solid var(--border-s);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--t2);transition:all .15s}
+.btn-reset:hover{border-color:var(--brand);color:var(--brand)}
+/* TABS */
+.tab-nav{display:flex;gap:0;background:var(--card);border-bottom:.5px solid var(--border);padding:0 24px;overflow-x:auto}
+.tab-btn{padding:12px 16px;font-size:13px;font-weight:500;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none}
+.tab-btn:hover{color:var(--brand)}
+.tab-btn.active{color:var(--brand);border-bottom-color:var(--brand)}
+/* TAB CONTENT */
+.tab-content{display:none;padding:20px 24px;max-width:1400px;margin:0 auto}
+.tab-content.active{display:block}
+/* SETTINGS BAR */
+.settings-bar{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.settings-bar label{font-size:12px;color:var(--t2)}
+.settings-bar input[type=number]{width:66px;border:.5px solid var(--border-s);border-radius:5px;padding:4px 7px;font-size:12px;font-family:inherit;color:var(--text);background:var(--bg);margin-left:5px}
+.settings-bar input[type=number]:focus{outline:none;border-color:var(--brand)}
+.s-label{font-size:12px;font-weight:600;color:var(--brand);margin-right:4px}
+.btn-sm{background:var(--brand);color:white;border:none;border-radius:5px;padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer}
+.btn-sm:hover{background:#0a5a3c}
+/* CARDS */
+.cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.card-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.card-value{font-size:22px;font-weight:600;line-height:1.1}
+.card-sub{font-size:11px;color:var(--t3);margin-top:3px}
+.card.green .card-value{color:var(--green)}
+.card.red .card-value{color:var(--red)}
+.card.gold .card-value{color:var(--amber)}
+.card.blue .card-value{color:var(--blue)}
+/* FILTERS */
+.filters{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.filters select,.filters input[type=text]{border:.5px solid var(--border-s);border-radius:5px;padding:5px 9px;font-size:12px;font-family:inherit;color:var(--text);background:var(--bg);min-width:140px}
+.filters select:focus,.filters input:focus{outline:none;border-color:var(--brand)}
+.f-label{font-size:11px;color:var(--t2);white-space:nowrap}
+/* TABLE */
+.tbl-wrap{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.tbl-hdr{padding:10px 14px;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tbl-title{font-size:13px;font-weight:600}
+.tbl-count{font-size:11px;color:var(--t3)}
+.tbl-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#F8F8F4;padding:8px 11px;text-align:left;font-size:10px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;border-bottom:.5px solid var(--border);cursor:pointer;user-select:none}
+thead th:hover{color:var(--brand)}
+thead th.sorted{color:var(--brand)}
+thead th.sorted::after{content:' ↓';font-size:9px}
+thead th.sorted.asc::after{content:' ↑'}
+tbody tr{border-bottom:.5px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#FAFAF6}
+tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:20px;border-radius:4px;font-size:11px;font-weight:700;background:var(--bg);color:var(--t2);border:.5px solid var(--border)}
+.rank-badge.top{background:#FEF7E0;color:#8A5C00;border-color:#F0D080}
+.pa-name{font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.apm-tag{font-size:10px;padding:2px 7px;background:var(--bg);border:.5px solid var(--border);border-radius:4px;color:var(--t2);white-space:nowrap}
+.bsc-bar-wrap{display:flex;align-items:center;gap:5px}
+.bsc-bar{height:4px;border-radius:3px;background:var(--border);flex:1;min-width:36px;max-width:60px;overflow:hidden}
+.bsc-bar-fill{height:100%;border-radius:3px;background:var(--brand)}
+.bsc-val{font-weight:600;font-size:12px;min-width:34px}
+.metric-val{color:var(--t2)}
+.metric-good{color:var(--gtext);font-weight:500}
+.metric-bad{color:var(--rtext)}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
+.badge.yes{background:var(--gbg);color:var(--gtext)}
+.badge.no{background:var(--rbg);color:var(--rtext)}
+.badge.warn{background:var(--abg);color:#7A5000}
+.badge.info{background:var(--bbg);color:var(--btext)}
+.inc-amt{font-weight:600;font-size:12px}
+.inc-amt.zero{color:var(--t3)}
+.inc-amt.high{color:var(--gtext)}
+.no-data{text-align:center;padding:32px;color:var(--t3);font-size:13px}
+/* SLAB LEGEND */
+.slab-wrap{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:18px}
+.slab-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.slab-item{display:flex;align-items:center;gap:5px;background:var(--bg);border:.5px solid var(--border);border-radius:5px;padding:4px 9px;font-size:11px}
+.slab-rank{font-weight:600;color:var(--t2)}
+.slab-amt{font-weight:700;color:var(--gtext)}
+/* APM GRID */
+.apm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-bottom:20px}
+.apm-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.apm-card-name{font-weight:600;font-size:13px;margin-bottom:8px}
+.apm-stats{display:flex;gap:10px}
+.apm-stat{flex:1}
+.apm-stat-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.apm-stat-value{font-size:15px;font-weight:600}
+.apm-stat-value.green{color:var(--gtext)}
+.apm-stat-value.gold{color:var(--amber)}
+.apm-bar{margin-top:7px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.apm-bar-fill{height:100%;background:var(--brand-mid);border-radius:2px}
+/* SECTION TITLE */
+.section-title{font-size:13px;font-weight:600;margin-bottom:10px}
+/* 7-DAY TREND */
+.trend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:1px}
+.trend-dot.p{background:var(--brand-mid)}
+.trend-dot.a{background:var(--border)}
+.trend-dot.w{background:var(--amber)}
+/* AT-RISK */
+.risk-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:16px}
+.risk-badge{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.risk-badge.high{background:var(--red)}
+.risk-badge.med{background:var(--amber)}
+.risk-badge.low{background:var(--blue)}
+.risk-name{font-weight:600;font-size:13px}
+.risk-detail{font-size:12px;color:var(--t2);margin-top:3px}
+.risk-action{font-size:11px;color:var(--brand);font-weight:500;margin-top:5px}
+/* RANK ADVISOR */
+.advisor-select{font-size:13px;padding:7px 12px;border:.5px solid var(--border-s);border-radius:var(--r);min-width:260px;font-family:inherit;background:var(--bg);color:var(--text)}
+.advisor-select:focus{outline:none;border-color:var(--brand)}
+.advisor-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--rl);padding:20px;margin-top:14px}
+.advisor-headline{font-size:16px;font-weight:600;margin-bottom:4px}
+.advisor-sub{font-size:12px;color:var(--t2);margin-bottom:16px}
+.metric-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--border)}
+.metric-row:last-child{border-bottom:none}
+.metric-name{font-size:12px;font-weight:500;min-width:160px}
+.metric-bar-wrap{flex:1}
+.metric-bar-bg{height:7px;background:var(--border);border-radius:4px;position:relative;overflow:hidden}
+.metric-bar-fill{height:100%;border-radius:4px;background:var(--brand)}
+.metric-bar-gap{position:absolute;right:0;top:0;height:100%;background:rgba(192,57,43,.25);border-radius:0 4px 4px 0}
+.metric-nums{font-size:11px;color:var(--t2);min-width:80px;text-align:right}
+.focus-tag{font-size:10px;padding:2px 8px;background:var(--rbg);color:var(--rtext);border-radius:10px;font-weight:600;margin-left:6px}
+.best-tag{font-size:10px;padding:2px 8px;background:var(--gbg);color:var(--gtext);border-radius:10px;font-weight:600;margin-left:6px}
+.advice-box{background:var(--abg);border:.5px solid #F0D080;border-radius:var(--r);padding:12px 14px;margin-top:14px;font-size:12px;line-height:1.7}
+.advice-box strong{color:var(--amber)}
+/* TL VIEW */
+.tl-card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px}
+.tl-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.tl-rank-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:12px;font-weight:700;background:var(--brand-light);color:var(--brand)}
+.tl-name{font-weight:600;font-size:14px}
+.tl-bsc{font-size:13px;font-weight:600;color:var(--brand);margin-left:auto}
+.tl-metrics{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.tl-metric{background:var(--bg);border-radius:6px;padding:8px 10px}
+.tl-metric-name{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.tl-metric-val{font-size:13px;font-weight:600}
+.tl-metric-pct{font-size:11px;margin-top:1px}
+.tl-advice{font-size:11px;margin-top:10px;padding:8px 10px;background:var(--abg);border-radius:6px;color:#7A5000;border:.5px solid #F0D080}
+/* D1 */
+.d1-section{margin-bottom:20px}
+.d1-date{font-size:13px;color:var(--t2);margin-bottom:12px}
+/* FOOTER */
+.footer{text-align:center;font-size:11px;color:var(--t3);padding:14px 24px 28px}
+/* MULTI-SELECT */
+.ms-wrap{position:relative;display:inline-block}
+.ms-trigger{border:.5px solid var(--border-s);border-radius:5px;padding:5px 10px;font-size:12px;font-family:inherit;color:var(--text);background:var(--bg);cursor:pointer;min-width:140px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:6px;white-space:nowrap}
+.ms-trigger:hover{border-color:var(--brand)}
+.ms-arrow{font-size:9px;color:var(--t3)}
+.ms-panel{position:absolute;top:calc(100% + 3px);left:0;background:var(--card);border:.5px solid var(--border-s);border-radius:var(--r);box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:200;min-width:200px;max-height:280px;display:flex;flex-direction:column}
+.ms-search input{width:100%;border:none;border-bottom:.5px solid var(--border);padding:7px 10px;font-size:12px;font-family:inherit;outline:none;background:transparent;color:var(--text)}
+.ms-items{overflow-y:auto;flex:1}
+.ms-item{display:flex;align-items:center;gap:7px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.ms-item:hover{background:var(--bg)}
+.ms-item input[type=checkbox]{accent-color:var(--brand);cursor:pointer;width:13px;height:13px}
+.ms-divider{height:.5px;background:var(--border);margin:2px 0}
+.ms-all-item{font-weight:600;padding:7px 10px;background:#F8F8F4}
+.ms-count{font-size:10px;background:var(--brand);color:white;border-radius:8px;padding:1px 6px;margin-left:2px}
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:#1A1A16;color:white;padding:10px 20px;border-radius:var(--r);font-size:13px;opacity:0;transition:all .25s;z-index:9999;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><div class="topbar-logo">BSC Incentive Dashboard</div><div class="topbar-sub">Online Certificates · India Outbound</div></div>
+  <div id="topbar-refresh" style="font-size:11px;opacity:.75;text-align:right"></div>
+</div>
+
+<!-- UPLOAD -->
+<div id="upload-screen">
+  <div class="upload-card">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <div class="upload-title">Upload Raw BSC Data</div>
+    <div class="upload-desc">Upload the BSC Excel file. All 6 views will auto-populate from the relevant sheets — PA, L7D Trend PA, D-1, and TL.</div>
+    <div class="drop-zone" id="drop-zone">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#9A9A90;margin:0 auto;display:block"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <p><strong>Drag & drop</strong> your Excel file here</p>
+      <p style="font-size:12px;margin-top:3px">or click to browse</p>
+      <button class="btn-upload" onclick="event.stopPropagation();document.getElementById('file-input').click()">Choose File</button>
+    </div>
+    <input type="file" id="file-input" accept=".xlsx,.xls">
+    <p class="upload-note">Reads PA · L7D Trend PA · D-1 · TL sheets · All calculations run in browser</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="info-bar">
+    <span id="refresh-time"></span><span class="sep">·</span>
+    <span class="file-name" id="file-name-display"></span><span class="sep">·</span>
+    <span id="pa-count-info"></span>
+    <button class="btn-reset" onclick="resetDashboard()">↑ Upload new file</button>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('incentive',this)">Incentive Report</button>
+    <button class="tab-btn" onclick="showTab('trend7d',this)">7-Day Trend</button>
+    <button class="tab-btn" onclick="showTab('d1',this)">D-1 vs QTD</button>
+    <button class="tab-btn" onclick="showTab('atrisk',this)">At-Risk Tracker</button>
+    <button class="tab-btn" onclick="showTab('rankadvisor',this)">Rank Advisor</button>
+    <button class="tab-btn" onclick="showTab('tlview',this)">TL / APM View</button>
+    <button class="tab-btn" onclick="showTab('bsconly',this)">Tentative (BSC Only)</button>
+    <button class="tab-btn" onclick="showTab('summary',this)">Incentive Summary</button>
+  </div>
+
+  <!-- TAB 1: INCENTIVE REPORT -->
+  <div id="tab-incentive" class="tab-content active">
+    <div class="settings-bar">
+      <span class="s-label">⚙ Settings</span>
+      <label>Total Working Days <input type="number" id="s-days" value="58" min="1" max="100"></label>
+      <label>Min Productive % <input type="number" id="s-prod" value="75" min="0" max="100"> %</label>
+      <label>Min BSC Score <input type="number" id="s-bsc" value="60" min="0" max="100"></label>
+      <button class="btn-sm" onclick="recalculate()">Recalculate</button>
+    </div>
+    <div class="cards-row">
+      <div class="card"><div class="card-label">Total PAs</div><div class="card-value" id="c-total">—</div></div>
+      <div class="card green"><div class="card-label">Eligible</div><div class="card-value" id="c-elig">—</div><div class="card-sub" id="c-elig-pct"></div></div>
+      <div class="card red"><div class="card-label">Not Eligible</div><div class="card-value" id="c-notelig">—</div></div>
+      <div class="card gold"><div class="card-label">Total Payout</div><div class="card-value" id="c-payout">—</div></div>
+      <div class="card"><div class="card-label">Avg (Eligible)</div><div class="card-value" id="c-avg">—</div></div>
+      <div class="card blue"><div class="card-label">Top BSC Score</div><div class="card-value" id="c-topbsc">—</div></div>
+    </div>
+    <div class="slab-wrap">
+      <div class="section-title">FY26 Q4 Incentive Slabs</div>
+      <div class="slab-grid">
+        <div class="slab-item"><span class="slab-rank">Rank 1–7</span><span style="color:var(--border-s)">→</span><span class="slab-amt">₹1,20,000</span></div>
+        <div class="slab-item"><span class="slab-rank">Rank 8–14</span><span style="color:var(--border-s)">→</span><span class="slab-amt">₹1,00,000</span></div>
+        <div class="slab-item"><span class="slab-rank">Rank 15–23</span><span style="color:var(--border-s)">→</span><span class="slab-amt">₹80,000</span></div>
+        <div class="slab-item"><span class="slab-rank">Rank 24–33</span><span style="color:var(--border-s)">→</span><span class="slab-amt">₹70,000</span></div>
+        <div class="slab-item"><span class="slab-rank">Rank 34–44</span><span style="color:var(--border-s)">→</span><span class="slab-amt">₹60,000</span></div>
+        <div class="slab-item"><span class="slab-rank">Rank 45–56</span><span style="color:var(--border-s)">→</span><span class="slab-amt">₹40,000</span></div>
+        <div class="slab-item"><span class="slab-rank">Rank 57–69</span><span style="color:var(--border-s)">→</span><span class="slab-amt">₹30,000</span></div>
+        <div class="slab-item"><span class="slab-rank">Rank 70–77</span><span style="color:var(--border-s)">→</span><span class="slab-amt">₹15,000</span></div>
+        <div class="slab-item"><span class="slab-rank">Rank 78+</span><span style="color:var(--border-s)">→</span><span class="slab-amt" style="color:var(--t3)">₹0</span></div>
+      </div>
+    </div>
+    <div class="filters">
+      <span class="f-label">Filter:</span>
+      <div class="ms-wrap" id="ms-f-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-f-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-f-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-f-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-f-apm" checked onchange="msToggleAll('ms-f-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-f-apm-list"></div></div></div></div>
+      <select id="f-elig" onchange="renderIncentiveTable()"><option value="">All</option><option value="yes">Eligible only</option><option value="no">Not Eligible</option></select>
+      <input type="text" id="f-search" placeholder="Search PA name…" oninput="renderIncentiveTable()">
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-sm" style="background:#217346" onclick="copyPATable()">📋 Copy for Teams</button>
+        <button class="btn-sm" style="background:#1D6F42" onclick="exportPAExcel()">⬇ Excel (APM-wise)</button>
+        <button class="btn-sm" style="background:#C0392B" onclick="exportPAPDF()">⬇ PDF</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><span class="tbl-title">PA Incentive Report</span><span class="tbl-count" id="showing-count"></span></div>
+      <div class="tbl-scroll"><table>
+        <thead><tr>
+          <th>S.No</th>
+          <th onclick="sortBy('name','incentive')">PA Name</th>
+          <th onclick="sortBy('apm','incentive')">APM</th>
+          <th onclick="sortBy('prodDays','incentive')">Prod. Days</th>
+          <th onclick="sortBy('prodPct','incentive')">Prod. %</th>
+          <th onclick="sortBy('bsc','incentive')">BSC Score</th>
+          <th onclick="sortBy('cc','incentive')">Conn. Calls</th>
+          <th onclick="sortBy('aht','incentive')">AHT (s)</th>
+          <th onclick="sortBy('ttfa','incentive')">Adj. TTFA</th>
+          <th onclick="sortBy('ptt','incentive')">PTT (min)</th>
+          <th onclick="sortBy('eligible','incentive')">Eligible</th>
+          <th onclick="sortBy('rank','incentive')">Rank</th>
+          <th onclick="sortBy('incentive','incentive')">Incentive (₹)</th>
+        </tr></thead>
+        <tbody id="pa-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="section-title">APM-wise Summary</div>
+    <div class="apm-grid" id="apm-grid"></div>
+  </div>
+
+  <!-- TAB 2: 7-DAY TREND -->
+  <div id="tab-trend7d" class="tab-content">
+    <div class="filters">
+      <span class="f-label">Filter:</span>
+      <div class="ms-wrap" id="ms-t7-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-t7-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-t7-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-t7-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-t7-apm" checked onchange="msToggleAll('ms-t7-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-t7-apm-list"></div></div></div></div>
+      <select id="t7-sort" onchange="renderTrend()">
+        <option value="bsc">Sort by QTD BSC</option>
+        <option value="trend">Sort by 7D Trend</option>
+        <option value="name">Sort by Name</option>
+      </select>
+      <input type="text" id="t7-search" placeholder="Search PA name…" oninput="renderTrend()">
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><span class="tbl-title">7-Day BSC Trend & Daily Metrics</span><span class="tbl-count" id="t7-count"></span></div>
+      <div class="tbl-scroll"><table>
+        <thead><tr>
+          <th>PA Name</th><th>APM</th>
+          <th>BSC Trend (7D)</th>
+          <th>Productivity</th>
+          <th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+          <th>Avg BSC (7D)</th><th>vs QTD</th>
+        </tr></thead>
+        <tbody id="t7-tbody"></tbody>
+      </table></div>
+    </div>
+    <div id="t7-metric-wrap">
+      <div class="section-title" style="margin-top:4px">Select a PA above to see daily metric breakdown</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: D-1 vs QTD -->
+  <div id="tab-d1" class="tab-content">
+    <div class="d1-section">
+      <div class="d1-date" id="d1-date-label"></div>
+      <div class="filters">
+        <span class="f-label">Filter:</span>
+        <div class="ms-wrap" id="ms-d1-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-d1-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-d1-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-d1-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-d1-apm" checked onchange="msToggleAll('ms-d1-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-d1-apm-list"></div></div></div></div>
+        <input type="text" id="d1-search" placeholder="Search PA name…" oninput="renderD1()">
+      </div>
+      <div class="cards-row" id="d1-cards"></div>
+      <div class="tbl-wrap">
+        <div class="tbl-hdr"><span class="tbl-title">Yesterday vs QTD Comparison</span><span class="tbl-count" id="d1-count"></span></div>
+        <div class="tbl-scroll"><table>
+          <thead><tr>
+            <th>PA Name</th><th>APM</th>
+            <th>QTD BSC</th><th>D-1 BSC</th><th>△ BSC</th>
+            <th>QTD Calls</th><th>D-1 Calls</th>
+            <th>QTD AHT</th><th>D-1 AHT</th>
+            <th>QTD TTFA</th><th>D-1 TTFA</th>
+            <th>QTD PTT</th><th>D-1 PTT</th>
+          </tr></thead>
+          <tbody id="d1-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: AT-RISK TRACKER -->
+  <div id="tab-atrisk" class="tab-content">
+    <div class="settings-bar">
+      <span class="s-label">⚙ Quarter Progress</span>
+      <label>Working Days Elapsed <input type="number" id="ar-elapsed" value="31" min="1" max="58"></label>
+      <label>Total Working Days <input type="number" id="ar-total" value="58" min="1" max="100"></label>
+      <button class="btn-sm" onclick="renderAtRisk()">Update</button>
+      <span style="font-size:11px;color:var(--t3);margin-left:8px">Days remaining = Total − Elapsed</span>
+    </div>
+    <div class="cards-row">
+      <div class="card red"><div class="card-label">Prod. Days At-Risk</div><div class="card-value" id="ar-c1">—</div></div>
+      <div class="card" style="--c:var(--amber)"><div class="card-label">BSC At-Risk (50–60)</div><div class="card-value" id="ar-c2" style="color:var(--amber)">—</div></div>
+      <div class="card"><div class="card-label">Double Risk</div><div class="card-value" id="ar-c3" style="color:var(--orange)">—</div></div>
+      <div class="card green"><div class="card-label">On Track</div><div class="card-value" id="ar-c4">—</div></div>
+      <div class="card"><div class="card-label">Incentive At Stake</div><div class="card-value" id="ar-c5" style="color:var(--amber)">—</div></div>
+    </div>
+    <div class="filters">
+      <span class="f-label">Filter:</span>
+      <div class="ms-wrap" id="ms-ar-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-ar-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-ar-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-ar-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-ar-apm" checked onchange="msToggleAll('ms-ar-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-ar-apm-list"></div></div></div></div>
+      <select id="ar-risk" onchange="renderAtRisk()">
+        <option value="">All Risk Types</option>
+        <option value="double">Double Risk</option>
+        <option value="prod">Prod. Days Risk</option>
+        <option value="bsc">BSC Risk</option>
+        <option value="ok">On Track</option>
+      </select>
+    </div>
+    <div id="atrisk-list"></div>
+  </div>
+
+  <!-- TAB 5: RANK ADVISOR -->
+  <div id="tab-rankadvisor" class="tab-content">
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span class="f-label">Select PA:</span>
+      <select class="advisor-select" id="adv-pa-select" onchange="renderAdvisor()"><option value="">— Choose a PA —</option></select>
+    </div>
+    <div id="advisor-output"><div class="no-data">Select a PA above to see their rank improvement advice.</div></div>
+  </div>
+
+  <!-- TAB 6: TL / APM VIEW -->
+  <div id="tab-tlview" class="tab-content">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span class="f-label">Filter TLs:</span>
+      <div class="ms-wrap" id="ms-tl-sel"><button class="ms-trigger" data-label="TLs" onclick="toggleMS(event,'ms-tl-sel')">All TLs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-tl-sel-panel" style="display:none"><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-tl-sel" checked onchange="msToggleAll('ms-tl-sel',this);renderTLView()"> Select All</label><div class="ms-divider"></div><div id="ms-tl-sel-list"></div></div></div></div>
+      <span class="f-label" style="margin-left:8px">Filter APMs:</span>
+      <div class="ms-wrap" id="ms-apm-sel"><button class="ms-trigger" data-label="APMs" onclick="toggleMS(event,'ms-apm-sel')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-apm-sel-panel" style="display:none"><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-apm-sel" checked onchange="msToggleAll('ms-apm-sel',this);renderTLView()"> Select All</label><div class="ms-divider"></div><div id="ms-apm-sel-list"></div></div></div></div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-sm" style="background:#217346" onclick="copyTLTable()">📋 Copy for Teams</button>
+        <button class="btn-sm" style="background:#1D6F42" onclick="exportTLExcel()">⬇ Excel</button>
+        <button class="btn-sm" style="background:#C0392B" onclick="exportTLPDF()">⬇ PDF</button>
+      </div>
+    </div>
+    <div class="cards-row" id="tl-summary-cards"></div>
+    <div class="section-title">TL Rankings — BSC Score & Rank Improvement Advice</div>
+    <div id="tl-cards-list"></div>
+    <div class="section-title" style="margin-top:20px">APM Rankings — Team BSC & Rank Improvement Advice</div>
+    <div id="apm-cards-list"></div>
+  </div>
+
+  <!-- TAB 7: TENTATIVE INCENTIVES (BSC ONLY) -->
+  <div id="tab-bsconly" class="tab-content">
+    <div style="background:var(--abg);border:.5px solid #F0D080;border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:12px;color:#7A5000">
+      <strong>Tentative view:</strong> Ranked by BSC score only — productive days gating (≥75%) is not applied. Every PA receives a tentative amount purely by BSC rank. Useful for showing PAs what they stand to earn if they meet the attendance gate.
+    </div>
+    <div class="filters">
+      <span class="f-label">Filter:</span>
+      <div class="ms-wrap" id="ms-bo-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-bo-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-bo-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-bo-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-bo-apm" checked onchange="msToggleAll('ms-bo-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-bo-apm-list"></div></div></div></div>
+      <input type="text" id="bo-search" placeholder="Search PA name…" oninput="renderBSCOnly()">
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-sm" style="background:#217346" onclick="copyBSCOnly()">📋 Copy for Teams</button>
+        <button class="btn-sm" style="background:#1D6F42" onclick="exportBSCOnlyExcel()">⬇ Excel</button>
+        <button class="btn-sm" style="background:#C0392B" onclick="exportBSCOnlyPDF()">⬇ PDF</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-hdr"><span class="tbl-title">Tentative Incentives — BSC Rank Only</span><span class="tbl-count" id="bo-count"></span></div>
+      <div class="tbl-scroll"><table>
+        <thead><tr>
+          <th>S.No</th><th onclick="bsSort('name')">PA Name</th><th onclick="bsSort('apm')">APM</th>
+          <th onclick="bsSort('prodDays')">Prod. Days</th><th onclick="bsSort('prodPct')">Prod. %</th>
+          <th onclick="bsSort('bsc')">BSC Score</th><th onclick="bsSort('bscRank')">BSC Rank</th>
+          <th onclick="bsSort('tentative')">Tentative (₹)</th>
+          <th onclick="bsSort('actual')">Actual (₹)</th><th>Difference</th>
+          <th>Gate Status</th>
+        </tr></thead>
+        <tbody id="bo-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="cards-row" id="bo-cards" style="margin-top:4px"></div>
+  </div>
+
+  <!-- TAB 8: INCENTIVE SUMMARY -->
+  <div id="tab-summary" class="tab-content">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn-sm" style="background:#217346" onclick="copySummary()">📋 Copy for Teams</button>
+      <button class="btn-sm" style="background:#1D6F42" onclick="exportSummaryExcel()">⬇ Excel</button>
+      <button class="btn-sm" style="background:#C0392B" onclick="exportSummaryPDF()">⬇ PDF</button>
+    </div>
+    <div class="cards-row" id="sum-cards"></div>
+    <div class="section-title" style="margin-top:4px">Incentive Slab Distribution</div>
+    <div class="tbl-wrap" style="margin-bottom:20px">
+      <div class="tbl-scroll"><table>
+        <thead><tr><th>Slab</th><th>Rank Range</th><th>Amount (INR)</th><th># Eligible PAs</th><th>Total Payout (INR)</th><th>% of Total Payout</th></tr></thead>
+        <tbody id="sum-slab-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="section-title">APM-wise Incentive Summary</div>
+    <div class="tbl-wrap">
+      <div class="tbl-scroll"><table>
+        <thead><tr><th>APM Name</th><th>Total PAs</th><th>✓ Eligible</th><th>✗ Not Eligible</th><th>Eligibility %</th><th>Avg BSC (Eligible)</th><th>Total Payout (INR)</th></tr></thead>
+        <tbody id="sum-apm-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">BSC Incentive Dashboard · Online Certificates · India Outbound · Gating: ≥75% Productive Days & BSC ≥60</div>
+
+<script>
+const SLABS=[{from:1,to:7,amount:120000},{from:8,to:14,amount:100000},{from:15,to:23,amount:80000},{from:24,to:33,amount:70000},{from:34,to:44,amount:60000},{from:45,to:56,amount:40000},{from:57,to:69,amount:30000},{from:70,to:77,amount:15000},{from:78,to:Infinity,amount:0}];
+const TARGETS={cc:21,aht:780,ttfa:0.95,ptt:145};
+const METRICS=[{key:'cc',label:'Connected Calls',target:21,fmt:v=>v.toFixed(1)},{key:'aht',label:'AHT First Call (s)',target:780,fmt:v=>Math.round(v)},{key:'ttfa',label:'Adjusted TTFA',target:0.95,fmt:v=>(v*100).toFixed(1)+'%'},{key:'ptt',label:'Pure Talk Time (min)',target:145,fmt:v=>v.toFixed(1)}];
+
+let allPAs=[], trend7D=[], d1Data=[], tlData=[], apmData=[];
+let sortStates={incentive:{col:'rank',asc:true}};
+
+function sn(v){const n=parseFloat(v);return isNaN(n)?0:n;}
+function fmt1(n){return isNaN(n)?'—':n.toFixed(1);}
+function fmtINR(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+function getSlab(rank){for(const s of SLABS)if(rank>=s.from&&rank<=s.to)return s.amount;return 0;}
+function bscOf(p){return(Math.min(p.cc/TARGETS.cc,1)+Math.min(p.aht/TARGETS.aht,1)+Math.min(p.ttfa/TARGETS.ttfa,1)+Math.min(p.ptt/TARGETS.ptt,1))*25;}
+
+function formatRefreshTime(raw){
+  // raw is like "2026-5-14 21:35"
+  try{
+    const[datePart,timePart]=raw.split(' ');
+    const[y,m,d]=datePart.split('-');
+    const dd=String(d).padStart(2,'0');
+    const mm=String(m).padStart(2,'0');
+    let[hh,min]=timePart.split(':');
+    hh=parseInt(hh);
+    const ampm=hh>=12?'PM':'AM';
+    const h12=hh%12||12;
+    return`${dd}-${mm}-${y} ${h12}:${min} ${ampm}`;
+  }catch(e){return raw;}
+}
+
+// UPLOAD
+document.getElementById('drop-zone').addEventListener('click',()=>document.getElementById('file-input').click());
+document.getElementById('drop-zone').addEventListener('dragover',e=>{e.preventDefault();e.currentTarget.classList.add('drag-over')});
+document.getElementById('drop-zone').addEventListener('dragleave',e=>e.currentTarget.classList.remove('drag-over'));
+document.getElementById('drop-zone').addEventListener('drop',e=>{e.preventDefault();e.currentTarget.classList.remove('drag-over');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0])});
+document.getElementById('file-input').addEventListener('change',e=>{if(e.target.files[0])processFile(e.target.files[0])});
+
+function processFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const wb=XLSX.read(e.target.result,{type:'array'});
+    const paSheet=wb.SheetNames.find(s=>s.trim()==='PA');
+    const t7Sheet=wb.SheetNames.find(s=>s.trim()==='L7D Trend PA');
+    const d1Sheet=wb.SheetNames.find(s=>s.trim()==='D-1');
+    const tlSheet=wb.SheetNames.find(s=>s.trim()==='TL');
+    if(!paSheet){alert('Could not find "PA" sheet.');return;}
+    const paRows=XLSX.utils.sheet_to_json(wb.Sheets[paSheet],{header:1,defval:null});
+    const t7Rows=t7Sheet?XLSX.utils.sheet_to_json(wb.Sheets[t7Sheet],{header:1,defval:null}):[];
+    const d1Rows=d1Sheet?XLSX.utils.sheet_to_json(wb.Sheets[d1Sheet],{header:1,defval:null}):[];
+    const tlRows=tlSheet?XLSX.utils.sheet_to_json(wb.Sheets[tlSheet],{header:1,defval:null}):[];
+    parseAll(paRows,t7Rows,d1Rows,tlRows,file.name);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseAll(paRows,t7Rows,d1Rows,tlRows,fileName){
+  const refreshTime=(paRows[0]||[])[0]||'';
+  const rtRaw=String(refreshTime).replace('Report last Refresh Time: ','').trim();
+  const rt=formatRefreshTime(rtRaw);
+  document.getElementById('refresh-time').textContent='Data: '+rt;
+  document.getElementById('topbar-refresh').textContent=rt;
+  document.getElementById('file-name-display').textContent=fileName;
+
+  // PA sheet
+  allPAs=paRows.slice(3).filter(r=>r[0]&&String(r[0]).trim()).map(r=>({
+    name:String(r[0]).trim(),apm:String(r[1]||'').trim(),tl:String(r[2]||'').trim(),
+    prodDays:sn(r[5]),cc:sn(r[6]),aht:sn(r[8]),ttfa:sn(r[10]),ptt:sn(r[12]),
+    bsc:sn(r[14]),callsTB:sn(r[15]),ttTB:sn(r[16]),empId:r[18]?String(r[18]):'',
+  }));
+  document.getElementById('pa-count-info').textContent=allPAs.length+' PAs';
+
+  // L7D Trend PA
+  const dates=(t7Rows[1]||[]).slice(4,11).map(d=>{
+    if(!d)return'';
+    if(typeof d==='string')return d.substring(5);
+    try{const dd=new Date(d);return(dd.getMonth()+1)+'/'+(dd.getDate());}catch(e){return'';}
+  });
+  trend7D=t7Rows.slice(2).filter(r=>r[0]&&String(r[0]).trim()).map(r=>({
+    name:String(r[0]).trim(),apm:String(r[1]||'').trim(),
+    bsc7:Array.from({length:7},(_,i)=>sn(r[4+i])),
+    prod7:Array.from({length:7},(_,i)=>sn(r[11+i])),
+    att7:Array.from({length:7},(_,i)=>r[18+i]),
+    cc7:Array.from({length:7},(_,i)=>sn(r[25+i])),
+    aht7:Array.from({length:7},(_,i)=>sn(r[32+i])),
+    ttfa7:Array.from({length:7},(_,i)=>sn(r[39+i])),
+    ptt7:Array.from({length:7},(_,i)=>sn(r[46+i])),
+  }));
+  window._t7Dates=dates;
+
+  // D-1 sheet
+  const d1Date=(d1Rows[0]||[])[2];
+  let d1DateStr='';
+  if(d1Date){try{const dd=new Date(d1Date);d1DateStr=dd.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}catch(e){d1DateStr=String(d1Date);}}
+  window._d1Date=d1DateStr;
+  // Find PA rows in D-1: look for rows where col 0 matches a known PA name
+  const paNames=new Set(allPAs.map(p=>p.name));
+  d1Data=[];
+  d1Rows.slice(4).forEach(r=>{
+    if(!r[0])return;
+    const name=String(r[0]).trim();
+    if(paNames.has(name)){
+      d1Data.push({name,calls:sn(r[6]),callsPct:sn(r[7]),aht:sn(r[8]),ahtPct:sn(r[9]),
+        ttfa:sn(r[10]),ttfaPct:sn(r[11]),ptt:sn(r[12]),pttPct:sn(r[13]),bsc:sn(r[14])});
+    }
+  });
+
+  // TL sheet - parse TL and APM blocks
+  tlData=[];apmData=[];
+  let section='';
+  tlRows.slice(3).forEach(r=>{
+    if(!r[0])return;
+    const n=String(r[0]).trim();
+    if(n==='TL'){section='tl';return;}
+    if(n==='APM'){section='apm';return;}
+    if(n==='Overall')return;
+    const obj={name:n,paCnt:sn(r[1]),prodDaysPerPA:sn(r[2]),
+      cc:sn(r[3]),ccPct:sn(r[4]),aht:sn(r[5]),ahtPct:sn(r[6]),
+      ttfa:sn(r[7]),ttfaPct:sn(r[8]),ptt:sn(r[9]),pttPct:sn(r[10]),bsc:sn(r[11])};
+    if(section==='tl')tlData.push(obj);
+    else if(section==='apm')apmData.push(obj);
+  });
+
+  // Populate multi-select APM dropdowns
+  const apms=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
+  ['ms-f-apm','ms-t7-apm','ms-d1-apm','ms-ar-apm'].forEach(id=>populateMS(id,apms,getRefreshFn(id)));
+  populateMS('ms-bo-apm',apms,'renderBSCOnly()');
+  // TL and APM selects in TL view
+  const tlNames=[...new Set(tlData.map(t=>t.name).filter(Boolean))].sort();
+  const apmNames=[...new Set(apmData.map(a=>a.name).filter(Boolean))].sort();
+  populateMS('ms-tl-sel',tlNames,'renderTLView()');
+  populateMS('ms-apm-sel',apmNames,'renderTLView()');
+
+  // Populate PA advisor select
+  const advSel=document.getElementById('adv-pa-select');
+  advSel.innerHTML='<option value="">— Choose a PA —</option>';
+  [...allPAs].sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
+    const o=document.createElement('option');o.value=p.name;o.textContent=p.name+(p.apm?' ('+p.apm+')':'');advSel.appendChild(o);
+  });
+
+  recalculate();
+  document.getElementById('upload-screen').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+}
+
+function recalculate(){
+  const totalDays=parseInt(document.getElementById('s-days').value)||58;
+  const minProd=(parseFloat(document.getElementById('s-prod').value)||75)/100;
+  const minBSC=parseFloat(document.getElementById('s-bsc').value)||60;
+  allPAs.forEach(p=>{
+    p.prodPct=totalDays>0?p.prodDays/totalDays:0;
+    p.prodElig=p.prodPct>=minProd;
+    p.bscElig=p.bsc>=minBSC;
+    p.eligible=p.prodElig&&p.bscElig;
+  });
+  const sorted=[...allPAs].sort((a,b)=>{
+    if(b.bsc!==a.bsc)return b.bsc-a.bsc;
+    if(b.ttTB!==a.ttTB)return b.ttTB-a.ttTB;
+    if(b.callsTB!==a.callsTB)return b.callsTB-a.callsTB;
+    if(b.aht!==a.aht)return b.aht-a.aht;
+    return b.ttfa-a.ttfa;
+  });
+  sorted.forEach((p,i)=>p.rank=i+1);
+  allPAs.forEach(p=>p.incentive=p.eligible?getSlab(p.rank):0);
+  updateSummaryCards();
+  renderIncentiveTable();
+  renderAPMGrid();
+  renderTrend();
+  renderD1();
+  renderAtRisk();
+  renderTLView();
+  renderBSCOnly();
+  renderSummary();
+}
+
+function updateSummaryCards(){
+  const total=allPAs.length,elig=allPAs.filter(p=>p.eligible).length;
+  const payout=allPAs.reduce((s,p)=>s+p.incentive,0);
+  const avg=elig>0?allPAs.filter(p=>p.eligible).reduce((s,p)=>s+p.incentive,0)/elig:0;
+  const topBSC=Math.max(...allPAs.map(p=>p.bsc));
+  document.getElementById('c-total').textContent=total;
+  document.getElementById('c-elig').textContent=elig;
+  document.getElementById('c-elig-pct').textContent=total>0?Math.round(elig/total*100)+'% of team':'';
+  document.getElementById('c-notelig').textContent=total-elig;
+  document.getElementById('c-payout').textContent=fmtINR(payout);
+  document.getElementById('c-avg').textContent=elig>0?fmtINR(avg):'—';
+  document.getElementById('c-topbsc').textContent=fmt1(topBSC);
+}
+
+// INCENTIVE TABLE
+let incSortCol='rank',incSortAsc=true;
+function sortBy(col,tab){incSortCol=col;incSortAsc=col===incSortCol?!incSortAsc:col==='rank';renderIncentiveTable();}
+function renderIncentiveTable(){
+  const apmF=getSelectedMS('ms-f-apm');
+  const eligF=document.getElementById('f-elig').value;
+  const search=document.getElementById('f-search').value.toLowerCase();
+  let data=[...allPAs];
+  if(apmF.length)data=data.filter(p=>apmF.includes(p.apm));
+  if(eligF==='yes')data=data.filter(p=>p.eligible);
+  if(eligF==='no')data=data.filter(p=>!p.eligible);
+  if(search)data=data.filter(p=>p.name.toLowerCase().includes(search));
+  data.sort((a,b)=>{
+    let va=a[incSortCol],vb=b[incSortCol];
+    if(typeof va==='string')return incSortAsc?va.localeCompare(vb):vb.localeCompare(va);
+    return incSortAsc?va-vb:vb-va;
+  });
+  document.getElementById('showing-count').textContent='Showing '+data.length+' of '+allPAs.length;
+  const tbody=document.getElementById('pa-tbody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No PAs match.</td></tr>';return;}
+  tbody.innerHTML=data.map((p,i)=>{
+    const pp=(p.prodPct*100).toFixed(1);
+    const bscF=Math.min(100,p.bsc);
+    const ic=p.incentive===0?'zero':p.incentive>=80000?'high':'';
+    return`<tr>
+      <td style="color:var(--t3);font-size:11px;text-align:center">${i+1}</td>
+      <td><div class="pa-name" title="${p.name}">${p.name}</div></td>
+      <td><span class="apm-tag">${p.apm||'—'}</span></td>
+      <td class="${p.prodElig?'metric-good':'metric-bad'}">${p.prodDays}</td>
+      <td class="${p.prodElig?'metric-good':'metric-bad'}">${pp}%</td>
+      <td><div class="bsc-bar-wrap"><div class="bsc-bar"><div class="bsc-bar-fill" style="width:${bscF}%"></div></div><span class="bsc-val ${p.bscElig?'metric-good':'metric-bad'}">${fmt1(p.bsc)}</span></div></td>
+      <td class="metric-val">${fmt1(p.cc)}</td>
+      <td class="metric-val">${Math.round(p.aht)}</td>
+      <td class="metric-val">${(p.ttfa*100).toFixed(1)}%</td>
+      <td class="metric-val">${fmt1(p.ptt)}</td>
+      <td><span class="badge ${p.eligible?'yes':'no'}">${p.eligible?'✓ Eligible':'✗ Not Eligible'}</span></td>
+      <td><span class="rank-badge${p.rank<=7?' top':''}">${p.rank}</span></td>
+      <td><span class="inc-amt ${ic}">${p.incentive>0?fmtINR(p.incentive):'—'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAPMGrid(){
+  const apms=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
+  document.getElementById('apm-grid').innerHTML=apms.map(apm=>{
+    const pas=allPAs.filter(p=>p.apm===apm);
+    const elig=pas.filter(p=>p.eligible).length;
+    const payout=pas.reduce((s,p)=>s+p.incentive,0);
+    const pct=pas.length>0?Math.round(elig/pas.length*100):0;
+    return`<div class="apm-card"><div class="apm-card-name">${apm}</div><div class="apm-stats">
+      <div class="apm-stat"><div class="apm-stat-label">Total</div><div class="apm-stat-value">${pas.length}</div></div>
+      <div class="apm-stat"><div class="apm-stat-label">Eligible</div><div class="apm-stat-value green">${elig}</div></div>
+      <div class="apm-stat"><div class="apm-stat-label">Payout</div><div class="apm-stat-value gold">${payout>0?fmtINR(payout):'—'}</div></div>
+    </div><div class="apm-bar"><div class="apm-bar-fill" style="width:${pct}%"></div></div></div>`;
+  }).join('');
+}
+
+// 7-DAY TREND
+function sparkline(vals,w=80,h=22){
+  const v2=vals.filter(v=>v>0);
+  if(v2.length<2)return`<svg width="${w}" height="${h}"></svg>`;
+  const mn=Math.min(...v2),mx=Math.max(...v2),rng=mx-mn||1;
+  const pts=vals.map((v,i)=>{if(!v)return null;const x=(i/(vals.length-1))*w;const y=h-((v-mn)/rng)*(h-2)-1;return[x,y];}).filter(Boolean);
+  if(pts.length<2)return`<svg width="${w}" height="${h}"></svg>`;
+  const path='M '+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L ');
+  const col=pts[pts.length-1][1]<pts[0][1]?'#0D6E4A':'#C0392B';
+  return`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${path}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function renderTrend(){
+  const dates=window._t7Dates||['','','','','','',''];
+  const apmF=getSelectedMS('ms-t7-apm');
+  const sortF=document.getElementById('t7-sort').value;
+  const search=document.getElementById('t7-search').value.toLowerCase();
+
+  // Match trend data to PA data for QTD BSC
+  let data=trend7D.filter(t=>{
+    if(apmF.length&&!apmF.includes(t.apm))return false;
+    if(search&&!t.name.toLowerCase().includes(search))return false;
+    return true;
+  }).map(t=>{
+    const pa=allPAs.find(p=>p.name===t.name)||{};
+    t.qtdBsc=pa.bsc||0;
+    const validBsc=t.bsc7.filter(v=>v>0);
+    t.avg7=validBsc.length?validBsc.reduce((a,b)=>a+b,0)/validBsc.length:0;
+    t.trend=validBsc.length>=2?validBsc[validBsc.length-1]-validBsc[0]:0;
+    return t;
+  });
+
+  if(sortF==='bsc')data.sort((a,b)=>b.qtdBsc-a.qtdBsc);
+  else if(sortF==='trend')data.sort((a,b)=>b.trend-a.trend);
+  else data.sort((a,b)=>a.name.localeCompare(b.name));
+
+  document.getElementById('t7-count').textContent=data.length+' PAs';
+  const tbody=document.getElementById('t7-tbody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No data.</td></tr>';return;}
+
+  // Update date headers
+  const ths=document.querySelectorAll('#tab-trend7d thead th');
+  if(ths.length>=12)dates.forEach((d,i)=>{if(ths[4+i])ths[4+i].textContent=d||('D'+(i+1));});
+
+  tbody.innerHTML=data.map(t=>{
+    const dots=t.prod7.map((p,i)=>{
+      const att=t.att7[i];
+      if(p)return`<span class="trend-dot p" title="Productive"></span>`;
+      if(att==='P')return`<span class="trend-dot w" title="Present/Non-productive"></span>`;
+      return`<span class="trend-dot a" title="Absent"></span>`;
+    }).join('');
+    const bscCells=t.bsc7.map(v=>v>0?`<td style="font-size:11px;font-weight:${v>=60?'600':'400'};color:${v>=80?'#0D6E4A':v>=60?'#333':'#C0392B'}">${v.toFixed(1)}</td>`:'<td style="color:#ccc;font-size:11px">—</td>').join('');
+    const delta=t.avg7-t.qtdBsc;
+    const dCol=Math.abs(delta)<1?'var(--t3)':delta>0?'var(--gtext)':'var(--rtext)';
+    return`<tr onclick="showPATrend('${t.name.replace(/'/g,"\\'")}',this)" style="cursor:pointer">
+      <td><div class="pa-name">${t.name}</div></td>
+      <td><span class="apm-tag">${t.apm||'—'}</span></td>
+      <td>${sparkline(t.bsc7)}</td>
+      <td>${dots}</td>
+      ${bscCells}
+      <td style="font-weight:600;color:var(--brand)">${t.avg7>0?t.avg7.toFixed(1):'—'}</td>
+      <td style="font-weight:600;color:${dCol}">${t.avg7>0?(delta>=0?'+':'')+delta.toFixed(1):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function showPATrend(name,row){
+  document.querySelectorAll('#t7-tbody tr').forEach(r=>r.style.background='');
+  row.style.background='#EBF4F0';
+  const t=trend7D.find(t=>t.name===name);
+  if(!t)return;
+  const dates=window._t7Dates||['D1','D2','D3','D4','D5','D6','D7'];
+  const metrics=[{label:'Connected Calls',vals:t.cc7,target:21},{label:'AHT (s)',vals:t.aht7,target:780},{label:'TTFA %',vals:t.ttfa7.map(v=>v*100),target:95},{label:'PTT (min)',vals:t.ptt7,target:145}];
+  const html=`<div class="tbl-wrap"><div class="tbl-hdr"><span class="tbl-title">Daily Metrics — ${name}</span></div><div class="tbl-scroll"><table>
+    <thead><tr><th>Metric</th><th>Target</th>${dates.map(d=>'<th>'+d+'</th>').join('')}</tr></thead>
+    <tbody>${metrics.map(m=>{
+      const cells=m.vals.map((v,i)=>{
+        if(!v&&t.prod7[i]===0)return`<td style="color:#ccc">—</td>`;
+        const pct=v/m.target;
+        const col=pct>=1?'#0D6E4A':pct>=0.8?'#B07800':'#C0392B';
+        return`<td style="font-weight:600;color:${col}">${m.label.includes('%')?(v).toFixed(1)+'%':m.label.includes('AHT')?Math.round(v):v.toFixed(1)}</td>`;
+      }).join('');
+      return`<tr><td style="font-weight:500">${m.label}</td><td style="color:var(--t2)">${m.target}${m.label.includes('%')?'%':''}</td>${cells}</tr>`;
+    }).join('')}</tbody>
+  </table></div></div>`;
+  document.getElementById('t7-metric-wrap').innerHTML=html;
+}
+
+// D-1 vs QTD
+function renderD1(){
+  const d1DateStr=window._d1Date||'';
+  document.getElementById('d1-date-label').textContent='Yesterday: '+d1DateStr;
+  const apmF=getSelectedMS('ms-d1-apm');
+  const search=document.getElementById('d1-search').value.toLowerCase();
+  const d1Map=new Map(d1Data.map(d=>[d.name,d]));
+
+  let data=allPAs.filter(p=>{
+    if(apmF.length&&!apmF.includes(p.apm))return false;
+    if(search&&!p.name.toLowerCase().includes(search))return false;
+    return true;
+  });
+
+  // Cards
+  const hasD1=d1Data.length>0;
+  const avgD1BSC=hasD1?d1Data.filter(d=>d.bsc>0).reduce((s,d)=>s+d.bsc,0)/(d1Data.filter(d=>d.bsc>0).length||1):0;
+  const avgQTD=allPAs.length?allPAs.reduce((s,p)=>s+p.bsc,0)/allPAs.length:0;
+  document.getElementById('d1-cards').innerHTML=`
+    <div class="card blue"><div class="card-label">QTD Avg BSC</div><div class="card-value">${fmt1(avgQTD)}</div></div>
+    <div class="card ${avgD1BSC>=60?'green':'red'}"><div class="card-label">D-1 Avg BSC</div><div class="card-value">${hasD1&&avgD1BSC>0?fmt1(avgD1BSC):'No Data'}</div></div>
+    <div class="card"><div class="card-label">D-1 PAs with data</div><div class="card-value">${d1Data.filter(d=>d.bsc>0).length}</div></div>
+    <div class="card"><div class="card-label">PAs Shown</div><div class="card-value">${data.length}</div></div>`;
+
+  document.getElementById('d1-count').textContent=data.length+' PAs';
+  const tbody=document.getElementById('d1-tbody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No data.</td></tr>';return;}
+
+  tbody.innerHTML=data.map(p=>{
+    const d=d1Map.get(p.name);
+    const hasd=d&&d.bsc>0;
+    const delta=hasd?d.bsc-p.bsc:null;
+    const dCol=delta===null?'var(--t3)':Math.abs(delta)<1?'var(--t3)':delta>0?'var(--gtext)':'var(--rtext)';
+    const cell=(v,fmt)=>v?`<td style="color:var(--gtext);font-weight:500">${fmt(v)}</td>`:`<td style="color:var(--t3)">—</td>`;
+    return`<tr>
+      <td><div class="pa-name">${p.name}</div></td>
+      <td><span class="apm-tag">${p.apm||'—'}</span></td>
+      <td style="font-weight:600;color:var(--blue)">${fmt1(p.bsc)}</td>
+      ${hasd?`<td style="font-weight:600;color:${d.bsc>=60?'var(--gtext)':'var(--rtext)'}">${fmt1(d.bsc)}</td>`:'<td style="color:var(--t3)">No data</td>'}
+      <td style="font-weight:600;color:${dCol}">${delta!==null?(delta>=0?'+':'')+fmt1(delta):'—'}</td>
+      <td class="metric-val">${fmt1(p.cc)}</td>${cell(d&&d.calls,v=>fmt1(v))}
+      <td class="metric-val">${Math.round(p.aht)}</td>${cell(d&&d.aht,v=>Math.round(v))}
+      <td class="metric-val">${(p.ttfa*100).toFixed(1)}%</td>${cell(d&&d.ttfa,v=>(v*100).toFixed(1)+'%')}
+      <td class="metric-val">${fmt1(p.ptt)}</td>${cell(d&&d.ptt,v=>fmt1(v))}
+    </tr>`;
+  }).join('');
+}
+
+// AT-RISK TRACKER
+function renderAtRisk(){
+  const elapsed=parseInt(document.getElementById('ar-elapsed').value)||31;
+  const total=parseInt(document.getElementById('ar-total').value)||58;
+  const remaining=Math.max(0,total-elapsed);
+  const minProd=0.75;
+  const minBSCVal=60;
+  const prodNeed=Math.ceil(minProd*total);
+  const apmF=getSelectedMS('ms-ar-apm');
+  const riskF=document.getElementById('ar-risk').value;
+
+  let data=allPAs.map(p=>{
+    const daysNeeded=Math.max(0,prodNeed-p.prodDays);
+    const prodOK=p.prodDays>=prodNeed;
+    const prodAtRisk=!prodOK&&daysNeeded<=remaining;
+    const prodImpossible=!prodOK&&daysNeeded>remaining;
+    const bscOK=p.bsc>=minBSCVal;
+    const bscGap=Math.max(0,minBSCVal-p.bsc);
+    const weakest=getWeakestMetric(p);
+    let riskLevel='ok';
+    if((prodImpossible||(!prodOK&&!bscOK))||(!bscOK&&!prodOK))riskLevel='double';
+    else if(!prodOK||prodAtRisk)riskLevel='prod';
+    else if(!bscOK)riskLevel='bsc';
+    return{...p,daysNeeded,prodOK,prodAtRisk,prodImpossible,bscOK,bscGap,weakest,riskLevel,remaining};
+  });
+
+  if(apmF.length)data=data.filter(p=>apmF.includes(p.apm));
+  if(riskF)data=data.filter(p=>p.riskLevel===riskF);
+
+  const cnt={double:data.filter(p=>p.riskLevel==='double').length,prod:data.filter(p=>p.riskLevel==='prod').length,bsc:data.filter(p=>p.riskLevel==='bsc').length,ok:data.filter(p=>p.riskLevel==='ok').length};
+  const atStake=data.filter(p=>p.riskLevel!=='ok'&&p.rank<=77).length;
+  document.getElementById('ar-c1').textContent=cnt.prod+cnt.double;
+  document.getElementById('ar-c2').textContent=cnt.bsc;
+  document.getElementById('ar-c3').textContent=cnt.double;
+  document.getElementById('ar-c4').textContent=cnt.ok;
+  document.getElementById('ar-c5').textContent=atStake+' PAs';
+
+  data.sort((a,b)=>{const o={double:0,prod:1,bsc:2,ok:3};return(o[a.riskLevel]||3)-(o[b.riskLevel]||3);});
+
+  const el=document.getElementById('atrisk-list');
+  if(!data.length){el.innerHTML='<div class="no-data">No PAs match the filter.</div>';return;}
+
+  el.innerHTML=data.map(p=>{
+    const rcls=p.riskLevel==='double'?'high':p.riskLevel==='prod'||p.riskLevel==='bsc'?'med':'low';
+    let detail='',action='';
+    if(p.riskLevel==='double'){
+      detail=`Both gates at risk. Productive days: ${p.prodDays}/${prodNeed} needed (${p.daysNeeded} more in ${remaining} days). BSC: ${fmt1(p.bsc)}/60 (gap: ${fmt1(p.bscGap)}).`;
+      action=`Priority: ${p.daysNeeded>p.remaining?'Productive days gate cannot be met in remaining time.':'Hit productive days first.'} Improve ${p.weakest.label} for BSC.`;
+    }else if(p.riskLevel==='prod'){
+      detail=`Productive days: ${p.prodDays}/${prodNeed} needed. Needs ${p.daysNeeded} more productive days in ${remaining} remaining days.`;
+      action=p.prodImpossible?'⚠ Cannot meet productive days gate even if all remaining days are productive.':'Must make '+p.daysNeeded+' of the next '+remaining+' days productive (≥20 dials each).';
+    }else if(p.riskLevel==='bsc'){
+      detail=`BSC Score: ${fmt1(p.bsc)}/60 (gap: ${fmt1(p.bscGap)} points). Productive days: ✓`;
+      action=`Focus on ${p.weakest.label}. Currently at ${p.weakest.actual} vs target ${p.weakest.target}.`;
+    }else{
+      detail=`Productive days: ${p.prodDays}/${prodNeed} ✓ · BSC: ${fmt1(p.bsc)} ✓ · Rank: ${p.rank} · Incentive: ${p.incentive>0?fmtINR(p.incentive):'₹0'}`;
+      action='';
+    }
+    return`<div class="risk-card">
+      <div class="risk-badge ${rcls}"></div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="risk-name">${p.name}</span>
+          <span class="apm-tag">${p.apm||'—'}</span>
+          <span class="badge ${p.riskLevel==='ok'?'yes':p.riskLevel==='double'?'no':'warn'}">${p.riskLevel==='ok'?'On Track':p.riskLevel==='double'?'Double Risk':p.riskLevel==='prod'?'Prod. Risk':'BSC Risk'}</span>
+          ${p.riskLevel!=='ok'?`<span style="font-size:11px;color:var(--t3)">Rank ${p.rank}</span>`:''}
+        </div>
+        <div class="risk-detail">${detail}</div>
+        ${action?`<div class="risk-action">→ ${action}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getWeakestMetric(p){
+  const contribs=[
+    {key:'cc',label:'Connected Calls',actual:fmt1(p.cc),target:TARGETS.cc,contrib:Math.min(p.cc/TARGETS.cc,1)*25},
+    {key:'aht',label:'AHT First Call',actual:Math.round(p.aht)+'s',target:TARGETS.aht+'s',contrib:Math.min(p.aht/TARGETS.aht,1)*25},
+    {key:'ttfa',label:'Adjusted TTFA',actual:(p.ttfa*100).toFixed(1)+'%',target:'95%',contrib:Math.min(p.ttfa/TARGETS.ttfa,1)*25},
+    {key:'ptt',label:'Pure Talk Time',actual:fmt1(p.ptt)+'min',target:TARGETS.ptt+'min',contrib:Math.min(p.ptt/TARGETS.ptt,1)*25},
+  ].filter(m=>m.contrib<25);
+  return contribs.sort((a,b)=>a.contrib-b.contrib)[0]||{label:'All metrics capped',actual:'—',target:'—'};
+}
+
+// RANK ADVISOR
+function renderAdvisor(){
+  const name=document.getElementById('adv-pa-select').value;
+  if(!name){document.getElementById('advisor-output').innerHTML='<div class="no-data">Select a PA above to see their rank improvement advice.</div>';return;}
+  const p=allPAs.find(x=>x.name===name);
+  if(!p){return;}
+  const above=allPAs.find(x=>x.rank===p.rank-1);
+  const contribs=METRICS.map(m=>{
+    const curr=Math.min(p[m.key]/m.target,1);
+    const cap=1;
+    const currPts=curr*25;
+    const capPts=25;
+    const gap=capPts-currPts;
+    return{...m,curr,currPts,gap,actual:p[m.key]};
+  });
+  const sorted=[...contribs].sort((a,b)=>b.gap-a.gap);
+  const topFocus=sorted[0];
+  const bscNeeded=above?above.bsc-p.bsc+0.01:null;
+
+  let adviceHtml='';
+  if(above){
+    adviceHtml=`<div class="advice-box">
+      <strong>To move from Rank ${p.rank} → Rank ${p.rank-1}</strong>, you need to beat <strong>${above.name}</strong>'s BSC of <strong>${fmt1(above.bsc)}</strong> (you're at <strong>${fmt1(p.bsc)}</strong>, gap: <strong>+${fmt1(bscNeeded)}</strong> points).<br><br>
+      Best lever: improve <strong>${topFocus.label}</strong>. Currently at <strong>${topFocus.fmt(topFocus.actual)}</strong> vs target <strong>${topFocus.fmt(topFocus.key==='ttfa'?topFocus.target:topFocus.target)}</strong>. This metric alone has <strong>${topFocus.gap.toFixed(1)} BSC points</strong> headroom.
+    </div>`;
+  }else{
+    adviceHtml=`<div class="advice-box"><strong>Rank 1 — No one to beat above.</strong> Focus on maintaining and maxing out all 4 metrics to defend position.</div>`;
+  }
+
+  document.getElementById('advisor-output').innerHTML=`
+    <div class="advisor-card">
+      <div class="advisor-headline">${p.name}</div>
+      <div class="advisor-sub">Rank <strong>${p.rank}</strong> · BSC <strong>${fmt1(p.bsc)}</strong> · ${p.eligible?'✓ Eligible':'✗ Not Eligible'} · ${p.incentive>0?fmtINR(p.incentive):'₹0 incentive'}</div>
+      ${contribs.map(m=>{
+        const fillPct=m.curr*100;
+        const gapPct=(1-m.curr)*100;
+        const isFocus=m.key===topFocus.key;
+        const isBest=m.gap<0.5;
+        return`<div class="metric-row">
+          <span class="metric-name">${m.label}${isFocus?'<span class="focus-tag">FOCUS</span>':isBest?'<span class="best-tag">MAXED</span>':''}</span>
+          <div class="metric-bar-wrap">
+            <div class="metric-bar-bg">
+              <div class="metric-bar-fill" style="width:${fillPct}%;background:${isFocus?'#C0392B':isBest?'#0D6E4A':'#1a9a6c'}"></div>
+            </div>
+          </div>
+          <span class="metric-nums">${m.fmt(m.actual)} / ${m.key==='ttfa'?'95%':m.target}</span>
+          <span style="font-size:11px;color:${m.gap>1?'var(--rtext)':'var(--t3)'};min-width:60px;text-align:right">${m.gap>0.1?'-'+m.gap.toFixed(1)+' pts':'+'+m.currPts.toFixed(1)+' ✓'}</span>
+        </div>`;
+      }).join('')}
+      ${adviceHtml}
+      ${above?`<div style="margin-top:12px;font-size:12px;color:var(--t2)">Rank ${p.rank-1}: <strong>${above.name}</strong> · BSC ${fmt1(above.bsc)} · ${above.apm}</div>`:''}
+    </div>`;
+}
+
+// TL / APM VIEW
+function rankEntities(list){
+  return [...list].sort((a,b)=>b.bsc-a.bsc).map((x,i)=>({...x,rank:i+1}));
+}
+
+function renderTLView(){
+  const selTL=getSelectedMS('ms-tl-sel');
+  const selAPM=getSelectedMS('ms-apm-sel');
+  const filteredTL=selTL.length?tlData.filter(t=>selTL.includes(t.name)):tlData;
+  const filteredAPM=selAPM.length?apmData.filter(a=>selAPM.includes(a.name)):apmData;
+  const rankedTL=rankEntities(filteredTL);
+  const rankedAPM=rankEntities(filteredAPM);
+
+  const overallBSC=tlData.length?tlData.reduce((s,t)=>s+t.bsc,0)/tlData.length:0;
+  document.getElementById('tl-summary-cards').innerHTML=`
+    <div class="card"><div class="card-label">Total TLs</div><div class="card-value">${tlData.length}</div></div>
+    <div class="card blue"><div class="card-label">Avg TL BSC</div><div class="card-value">${fmt1(overallBSC)}</div></div>
+    <div class="card"><div class="card-label">Total APMs</div><div class="card-value">${apmData.length}</div></div>`;
+
+  function renderEntityCards(list,containerId){
+    if(!list.length){document.getElementById(containerId).innerHTML='<div class="no-data">No data found.</div>';return;}
+    document.getElementById(containerId).innerHTML=list.map(e=>{
+      const contribs=METRICS.map(m=>({...m,curr:Math.min(e[m.key]/m.target,1),actual:e[m.key]}));
+      const weakest=contribs.filter(m=>m.curr<1).sort((a,b)=>a.curr-b.curr)[0];
+      const above=list.find(x=>x.rank===e.rank-1);
+      return`<div class="tl-card">
+        <div class="tl-header">
+          <span class="tl-rank-badge">${e.rank}</span>
+          <span class="tl-name">${e.name}</span>
+          <span style="font-size:11px;color:var(--t2);margin-left:4px">(${e.paCnt} PAs)</span>
+          <span class="tl-bsc">BSC ${fmt1(e.bsc)}</span>
+        </div>
+        <div class="tl-metrics">
+          ${contribs.map(m=>{
+            const pct=Math.min(m.curr*100,100);
+            const col=pct>=100?'var(--gtext)':pct>=80?'var(--amber)':'var(--rtext)';
+            return`<div class="tl-metric">
+              <div class="tl-metric-name">${m.label}</div>
+              <div class="tl-metric-val" style="color:${col}">${m.fmt(m.actual)}</div>
+              <div class="tl-metric-pct" style="color:${col}">${(m.curr*100).toFixed(0)}% of target</div>
+            </div>`;
+          }).join('')}
+        </div>
+        ${weakest&&above?`<div class="tl-advice">→ To beat Rank ${e.rank-1} (${above.name}, BSC ${fmt1(above.bsc)}): focus on <strong>${weakest.label}</strong> — at ${weakest.fmt(weakest.actual)} vs target ${weakest.target}${weakest.key==='ttfa'?'%':''}. Gap: +${fmt1(above.bsc-e.bsc)} BSC pts.</div>`:''}
+      </div>`;
+    }).join('');
+  }
+  renderEntityCards(rankedTL,'tl-cards-list');
+  renderEntityCards(rankedAPM,'apm-cards-list');
+}
+
+// ── MULTI-SELECT FUNCTIONS ─────────────────────────────────────────
+function getRefreshFn(id){
+  const map={'ms-f-apm':'renderIncentiveTable()','ms-t7-apm':'renderTrend()','ms-d1-apm':'renderD1()','ms-ar-apm':'renderAtRisk()'};
+  return map[id]||'';
+}
+
+function populateMS(id,options,onChange){
+  const list=document.getElementById(id+'-list');
+  if(!list)return;
+  list.innerHTML=options.map(opt=>
+    `<label class="ms-item"><input type="checkbox" value="${opt}" checked onchange="msItemChange('${id}');${onChange}"> ${opt}</label>`
+  ).join('');
+  msUpdateTrigger(id);
+}
+
+function toggleMS(e,id){
+  e.stopPropagation();
+  const panel=document.getElementById(id+'-panel');
+  const isOpen=panel.style.display!=='none';
+  document.querySelectorAll('.ms-panel').forEach(p=>p.style.display='none');
+  if(!isOpen)panel.style.display='flex';
+}
+
+function msToggleAll(id,cb){
+  document.querySelectorAll('#'+id+'-list input[type=checkbox]').forEach(c=>c.checked=cb.checked);
+  msUpdateTrigger(id);
+}
+
+function msItemChange(id){
+  const items=[...document.querySelectorAll('#'+id+'-list input[type=checkbox]')];
+  const allCb=document.getElementById('msa-'+id.replace('ms-',''));
+  if(allCb)allCb.checked=items.every(c=>c.checked);
+  msUpdateTrigger(id);
+}
+
+function msUpdateTrigger(id){
+  const items=[...document.querySelectorAll('#'+id+'-list input[type=checkbox]')];
+  const sel=items.filter(c=>c.checked);
+  const btn=document.querySelector('#'+id+' .ms-trigger');
+  if(!btn)return;
+  const label=btn.getAttribute('data-label')||'APMs';
+  if(sel.length===0||sel.length===items.length){
+    btn.innerHTML=`All ${label} <span class="ms-arrow">▾</span>`;
+  }else if(sel.length===1){
+    btn.innerHTML=`${sel[0].value} <span class="ms-arrow">▾</span>`;
+  }else{
+    btn.innerHTML=`${sel.length} selected <span class="ms-count">${sel.length}</span> <span class="ms-arrow">▾</span>`;
+  }
+}
+
+function getSelectedMS(id){
+  const items=[...document.querySelectorAll('#'+id+'-list input[type=checkbox]')];
+  if(!items.length)return[];
+  const sel=items.filter(c=>c.checked).map(c=>c.value);
+  return sel.length===items.length?[]:sel;
+}
+
+function msSearch(input,id){
+  const q=input.value.toLowerCase();
+  document.querySelectorAll('#'+id+'-list .ms-item').forEach(item=>{
+    const val=item.querySelector('input').value.toLowerCase();
+    item.style.display=val.includes(q)?'':'none';
+  });
+}
+
+// Close dropdowns only on outside click — stop propagation from inside panels
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.ms-panel')&&!e.target.closest('.ms-trigger')){
+    document.querySelectorAll('.ms-panel').forEach(p=>p.style.display='none');
+  }
+});
+
+// ── COPY FOR TEAMS ─────────────────────────────────────────────────
+function copyPATable(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const filters=getCurrentPAFilters();
+  const html=buildPAHtml(filters);
+  const count=getFilteredPAs(filters).length;
+  copyHTML(html,`${count} PA${count!==1?'s':''} copied — paste into Teams or Excel.`);
+}
+
+function copyTLTable(){
+  if(!tlData.length&&!apmData.length){alert('Upload a file first.');return;}
+  const filters=getCurrentTLFilters();
+  const html=buildTLHtml(filters);
+  copyHTML(html,'TL/APM table copied — paste into Teams or Excel.');
+}
+
+async function copyHTML(html,msg){
+  try{
+    const blob=new Blob([html],{type:'text/html'});
+    await navigator.clipboard.write([new ClipboardItem({'text/html':blob})]);
+    showToast(msg);
+  }catch(e){
+    try{await navigator.clipboard.writeText(html);showToast('Copied as text (HTML format).');}
+    catch(e2){showToast('Copy failed — use Export instead.');}
+  }
+}
+
+function showToast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3000);
+}
+
+// TAB SWITCHING
+function showTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── EXPORT HELPERS ──────────────────────────────────────────────────
+function rowBg(p){
+  const bsc=p.bsc;
+  if(bsc<=60)return{bg:'#FFCCCC',fg:'#7B0000'};
+  if(bsc<=70)return{bg:'#FFFF99',fg:'#5A4000'};
+  return{bg:'#92D050',fg:'#1F4E00'};
+}
+
+
+// ── FILTER HELPERS ────────────────────────────────────────────────
+function getCurrentPAFilters(){
+  return{
+    apms: getSelectedMS('ms-f-apm'),
+    eligF: document.getElementById('f-elig').value,
+    search: document.getElementById('f-search').value.toLowerCase().trim()
+  };
+}
+function getCurrentTLFilters(){
+  return{
+    tls: getSelectedMS('ms-tl-sel'),
+    apms: getSelectedMS('ms-apm-sel')
+  };
+}
+function getFilteredPAs(f){
+  let data=[...allPAs];
+  if(f.apms&&f.apms.length) data=data.filter(p=>f.apms.includes(p.apm));
+  if(f.eligF==='yes') data=data.filter(p=>p.eligible);
+  if(f.eligF==='no')  data=data.filter(p=>!p.eligible);
+  if(f.search) data=data.filter(p=>p.name.toLowerCase().includes(f.search));
+  return data;
+}
+
+// ── BUILD HTML FOR EXPORT / COPY ──────────────────────────────────
+function rowBg(p){
+  const bsc=p.bsc;
+  if(bsc<=60)return{bg:'#FFCCCC',fg:'#7B0000'};
+  if(bsc<=70)return{bg:'#FFFF99',fg:'#5A4000'};
+  return{bg:'#92D050',fg:'#1F4E00'};
+}
+
+function buildPAHtml(filters){
+  const f=filters||{apms:[],eligF:'',search:''};
+  const totalDays=parseInt(document.getElementById('s-days').value)||58;
+  const refreshTxt=document.getElementById('refresh-time').textContent;
+  const filteredPAs=getFilteredPAs(f);
+  const apmsInView=[...new Set(filteredPAs.map(p=>p.apm).filter(Boolean))].sort();
+  let rows='';
+  apmsInView.forEach(apm=>{
+    const pas=filteredPAs.filter(p=>p.apm===apm).sort((a,b)=>a.rank-b.rank);
+    if(!pas.length)return;
+    const payout=pas.reduce((s,p)=>s+p.incentive,0);
+    rows+=`<tr><td colspan="15" style="background:#0D6E4A;color:white;font-weight:700;font-size:13px;padding:7px 10px">APM: ${apm} &nbsp;|&nbsp; ${pas.length} PAs &nbsp;|&nbsp; Payout: ₹${payout.toLocaleString('en-IN')}</td></tr>`;
+    pas.forEach((p,i)=>{
+      const c=rowBg(p);
+      const ccPct=Math.min(p.cc/21,1);const ahtPct=Math.min(p.aht/780,1);const ttfaPct=Math.min(p.ttfa/0.95,1);const pttPct=Math.min(p.ptt/145,1);
+      rows+=`<tr style="background:${c.bg};color:${c.fg}">
+        <td style="text-align:center;font-weight:600">${i+1}</td>
+        <td style="font-style:italic;font-weight:700">${p.name}</td>
+        <td style="text-align:center">${p.prodDays}</td>
+        <td style="text-align:center">${fmt1(p.cc)}</td>
+        <td style="text-align:center">${(ccPct*100).toFixed(0)}%</td>
+        <td style="text-align:center">${Math.round(p.aht)}</td>
+        <td style="text-align:center">${(ahtPct*100).toFixed(0)}%</td>
+        <td style="text-align:center">${(p.ttfa*100).toFixed(0)}%</td>
+        <td style="text-align:center">${(ttfaPct*100).toFixed(0)}%</td>
+        <td style="text-align:center">${fmt1(p.ptt)}</td>
+        <td style="text-align:center">${(pttPct*100).toFixed(0)}%</td>
+        <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
+        <td style="text-align:center">${p.callsTB>0?Math.round(p.callsTB):''}</td>
+        <td style="text-align:center;font-weight:700">${p.rank}</td>
+        <td style="text-align:center;font-weight:700">${p.incentive>0?'₹'+p.incentive.toLocaleString('en-IN'):'₹ 0'}</td>
+      </tr>`;
+    });
+    rows+=`<tr style="background:#E8F4EF"><td colspan="12" style="text-align:right;font-weight:600;padding:5px 10px">APM Total Payout →</td><td colspan="3" style="font-weight:700;color:#0D6E4A;padding:5px 10px">₹${payout.toLocaleString('en-IN')}</td></tr>`;
+    rows+=`<tr><td colspan="15" style="height:6px"></td></tr>`;
+  });
+  const filterNote=[
+    f.apms&&f.apms.length?'APMs: '+f.apms.join(', '):'',
+    f.eligF==='yes'?'Eligible only':f.eligF==='no'?'Not Eligible only':'',
+    f.search?'Search: "'+f.search+'"':''
+  ].filter(Boolean).join(' · ');
+  return`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #C0C0C0;padding:5px 8px;white-space:nowrap}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.grp-hdr{background:#1F4E78;color:white;font-weight:700;font-size:10pt;text-align:center;padding:4px 6px}</style></head><body>
+  <h2 style="color:#0D6E4A;margin-bottom:4px">BSC Incentive Report — FY26 Q4</h2>
+  <p style="color:#666;font-size:10pt;margin-bottom:4px">${refreshTxt} &nbsp;|&nbsp; ${filteredPAs.length} PAs &nbsp;|&nbsp; Gating: ≥75% Productive Days & BSC ≥60 &nbsp;|&nbsp; Total Working Days: ${totalDays}</p>
+  ${filterNote?`<p style="color:#0D6E4A;font-size:10pt;margin-bottom:10px">Filters: ${filterNote}</p>`:''}
+  <table>
+    <thead>
+      <tr>
+        <th rowspan="2">S.No</th><th rowspan="2">PA</th><th rowspan="2"># Productive Days</th>
+        <th colspan="2">Connected Calls</th><th colspan="2">First Connected Call AHT</th>
+        <th colspan="2">Adjusted TTFA</th><th colspan="2">Pure Talk Time</th>
+        <th rowspan="2">Balance Scorecard</th><th rowspan="2">Calls</th><th rowspan="2">RANK</th><th rowspan="2">AMOUNT</th>
+      </tr>
+      <tr>
+        <th class="grp-hdr">Actuals</th><th class="grp-hdr">% Ach</th>
+        <th class="grp-hdr">Actuals</th><th class="grp-hdr">% Ach</th>
+        <th class="grp-hdr">Actuals</th><th class="grp-hdr">% Ach</th>
+        <th class="grp-hdr">Actuals</th><th class="grp-hdr">% Ach</th>
+      </tr>
+      <tr style="background:#E2EFDA">
+        <td colspan="3"></td>
+        <td style="text-align:center;font-weight:600;color:#375623">21</td><td></td>
+        <td style="text-align:center;font-weight:600;color:#375623">780</td><td></td>
+        <td style="text-align:center;font-weight:600;color:#375623">95%</td><td></td>
+        <td style="text-align:center;font-weight:600;color:#375623">145</td><td></td>
+        <td colspan="4"></td>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <p style="margin-top:10px;font-size:9pt;color:#888">
+    <span style="background:#92D050;padding:2px 8px;border:1px solid #ccc">BSC 71–100 (Green)</span>&nbsp;
+    <span style="background:#FFFF99;padding:2px 8px;border:1px solid #ccc">BSC 61–70 (Yellow)</span>&nbsp;
+    <span style="background:#FFCCCC;padding:2px 8px;border:1px solid #ccc">BSC 0–60 (Red)</span>
+  </p></body></html>`;
+}
+
+function exportPAExcel(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const html=buildPAHtml(getCurrentPAFilters());
+  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='BSC_PA_Incentive_FY26Q4.xls';a.click();URL.revokeObjectURL(url);
+}
+
+function exportPAPDF(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const html=buildPAHtml(getCurrentPAFilters()).replace('</head>','<style>@page{size:A3 landscape;margin:12mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>');
+  const w=window.open('','_blank');
+  w.document.write(html);w.document.close();
+  w.onload=()=>{w.print();};
+}
+
+function buildTLHtml(filters){
+  const f=filters||{tls:[],apms:[]};
+  const refreshTxt=document.getElementById('refresh-time').textContent;
+  const filtTL=f.tls&&f.tls.length?tlData.filter(t=>f.tls.includes(t.name)):tlData;
+  const filtAPM=f.apms&&f.apms.length?apmData.filter(a=>f.apms.includes(a.name)):apmData;
+  function section(list,title){
+    if(!list.length)return'';
+    const ranked=[...list].sort((a,b)=>b.bsc-a.bsc).map((x,i)=>({...x,rank:i+1}));
+    const rows=ranked.map(e=>{
+      const ccPct=(Math.min(e.cc/21,1)*100).toFixed(0);const ahtPct=(Math.min(e.aht/780,1)*100).toFixed(0);
+      const ttfaPct=(Math.min(e.ttfa/0.95,1)*100).toFixed(0);const pttPct=(Math.min(e.ptt/145,1)*100).toFixed(0);
+      const bscCol=e.bsc>=71?'#1F4E00':e.bsc>=61?'#5A4000':'#7B0000';
+      const bscBg=e.bsc>=71?'#92D050':e.bsc>=61?'#FFFF99':'#FFCCCC';
+      const above=ranked.find(x=>x.rank===e.rank-1);
+      const focus=['cc','aht','ttfa','ptt'].map(k=>({k,pct:Math.min(e[k]/TARGETS[k],1)})).sort((a,b)=>a.pct-b.pct)[0];
+      const focusLabel={cc:'Connected Calls',aht:'AHT',ttfa:'TTFA',ptt:'PTT'}[focus?.k]||'—';
+      return`<tr>
+        <td style="text-align:center;font-weight:700">${e.rank}</td>
+        <td style="font-weight:600">${e.name}</td>
+        <td style="text-align:center">${Math.round(e.paCnt||0)}</td>
+        <td style="text-align:center">${fmt1(e.cc)}</td><td style="text-align:center">${ccPct}%</td>
+        <td style="text-align:center">${Math.round(e.aht)}</td><td style="text-align:center">${ahtPct}%</td>
+        <td style="text-align:center">${(e.ttfa*100).toFixed(1)}%</td><td style="text-align:center">${ttfaPct}%</td>
+        <td style="text-align:center">${fmt1(e.ptt)}</td><td style="text-align:center">${pttPct}%</td>
+        <td style="text-align:center;font-weight:700;background:${bscBg};color:${bscCol}">${fmt1(e.bsc)}</td>
+        <td style="font-size:10pt;color:#0D6E4A">${above?'Focus: '+focusLabel+' → Beat '+above.name+' (BSC '+fmt1(above.bsc)+')':'Rank 1 — Defend'}</td>
+      </tr>`;
+    }).join('');
+    return`<h3 style="color:#0D6E4A;margin:16px 0 6px">${title} (${list.length} shown)</h3>
+    <table><thead>
+      <tr><th rowspan="2">Rank</th><th rowspan="2">Name</th><th rowspan="2"># PAs</th>
+      <th colspan="2">Connected Calls</th><th colspan="2">AHT</th><th colspan="2">Adj. TTFA</th><th colspan="2">PTT</th>
+      <th rowspan="2">BSC</th><th rowspan="2">To Move 1 Rank Up</th></tr>
+      <tr><th>Actuals</th><th>% Ach</th><th>Actuals</th><th>% Ach</th><th>Actuals</th><th>% Ach</th><th>Actuals</th><th>% Ach</th></tr>
+    </thead><tbody>${rows}</tbody></table>`;
+  }
+  const filterNote=[
+    f.tls&&f.tls.length?'TLs: '+f.tls.join(', '):'',
+    f.apms&&f.apms.length?'APMs: '+f.apms.join(', '):''
+  ].filter(Boolean).join(' · ');
+  return`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #C0C0C0;padding:5px 8px;white-space:nowrap}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}tr:nth-child(even){background:#F5F5F0}</style>
+  </head><body>
+  <h2 style="color:#0D6E4A;margin-bottom:4px">TL / APM Performance — BSC Incentive Dashboard</h2>
+  <p style="color:#666;font-size:10pt;margin-bottom:4px">${refreshTxt}</p>
+  ${filterNote?`<p style="color:#0D6E4A;font-size:10pt;margin-bottom:10px">Filters: ${filterNote}</p>`:''}
+  ${section(filtTL,'Team Lead (TL) Rankings')}
+  ${section(filtAPM,'APM Rankings')}
+  </body></html>`;
+}
+
+function exportTLExcel(){
+  if(!tlData.length&&!apmData.length){alert('Upload a file first.');return;}
+  const html=buildTLHtml(getCurrentTLFilters());
+  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='BSC_TL_APM_FY26Q4.xls';a.click();URL.revokeObjectURL(url);
+}
+
+function exportTLPDF(){
+  if(!tlData.length&&!apmData.length){alert('Upload a file first.');return;}
+  const html=buildTLHtml(getCurrentTLFilters()).replace('</head>','<style>@page{size:A3 landscape;margin:12mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>');
+  const w=window.open('','_blank');
+  w.document.write(html);w.document.close();
+  w.onload=()=>{w.print();};
+}
+
+// ── TAB 7: TENTATIVE (BSC ONLY) ───────────────────────────────────
+let bsSortCol='bscRank', bsSortAsc=true;
+function bsSort(col){bsSortAsc=col===bsSortCol?!bsSortAsc:col==='bscRank';bsSortCol=col;renderBSCOnly();}
+
+function getBSCOnlyData(){
+  // Rank ALL PAs by BSC only, no gating
+  const sorted=[...allPAs].sort((a,b)=>{
+    if(b.bsc!==a.bsc)return b.bsc-a.bsc;
+    if(b.ttTB!==a.ttTB)return b.ttTB-a.ttTB;
+    if(b.callsTB!==a.callsTB)return b.callsTB-a.callsTB;
+    return b.aht-a.aht;
+  });
+  return sorted.map((p,i)=>({
+    ...p,
+    bscRank:i+1,
+    tentative:getSlab(i+1),
+    actual:p.incentive,
+    diff:getSlab(i+1)-p.incentive
+  }));
+}
+
+function renderBSCOnly(){
+  const apmF=getSelectedMS('ms-bo-apm');
+  const search=document.getElementById('bo-search').value.toLowerCase();
+  let data=getBSCOnlyData();
+  if(apmF.length)data=data.filter(p=>apmF.includes(p.apm));
+  if(search)data=data.filter(p=>p.name.toLowerCase().includes(search));
+  data.sort((a,b)=>{
+    const va=a[bsSortCol],vb=b[bsSortCol];
+    if(typeof va==='string')return bsSortAsc?va.localeCompare(vb):vb.localeCompare(va);
+    return bsSortAsc?va-vb:vb-va;
+  });
+
+  // Summary cards
+  const totalTent=data.reduce((s,p)=>s+p.tentative,0);
+  const topTent=data.filter(p=>p.tentative>0).length;
+  document.getElementById('bo-cards').innerHTML=`
+    <div class="card"><div class="card-label">PAs Shown</div><div class="card-value">${data.length}</div></div>
+    <div class="card gold"><div class="card-label">Tentative Total Payout</div><div class="card-value">${fmtINR(totalTent)}</div></div>
+    <div class="card green"><div class="card-label">PAs with Tentative Incentive</div><div class="card-value">${topTent}</div></div>
+    <div class="card blue"><div class="card-label">vs Actual Total Payout</div><div class="card-value">${fmtINR(data.reduce((s,p)=>s+p.actual,0))}</div></div>`;
+
+  document.getElementById('bo-count').textContent=data.length+' PAs';
+  const tbody=document.getElementById('bo-tbody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="11" class="no-data">No data.</td></tr>';return;}
+  tbody.innerHTML=data.map((p,i)=>{
+    const c=rowBg(p);
+    const gateOK=p.prodElig&&p.bscElig;
+    const diff=p.diff;
+    const diffCol=diff>0?'var(--gtext)':diff<0?'var(--rtext)':'var(--t3)';
+    return`<tr style="background:${c.bg};color:${c.fg}">
+      <td style="text-align:center;color:#555;font-size:11px">${i+1}</td>
+      <td style="font-weight:600">${p.name}</td>
+      <td><span class="apm-tag">${p.apm||'—'}</span></td>
+      <td style="text-align:center;color:${p.prodElig?'#1F4E00':'#7B0000'}">${p.prodDays}</td>
+      <td style="text-align:center;color:${p.prodElig?'#1F4E00':'#7B0000'}">${(p.prodPct*100).toFixed(1)}%</td>
+      <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
+      <td style="text-align:center;font-weight:700">${p.bscRank}</td>
+      <td style="text-align:center;font-weight:700">${p.tentative>0?fmtINR(p.tentative):'—'}</td>
+      <td style="text-align:center">${p.actual>0?fmtINR(p.actual):'—'}</td>
+      <td style="text-align:center;font-weight:600;color:${diffCol}">${diff>0?'+':diff<0?'':''} ${Math.abs(diff)>0?fmtINR(Math.abs(diff)):'—'}</td>
+      <td style="text-align:center"><span class="badge ${gateOK?'yes':p.prodElig?'warn':'no'}">${gateOK?'✓ Both Gates':`✗ ${!p.prodElig?'Prod. Days':!p.bscElig?'BSC':''}  `}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildBSCOnlyHtml(apmF,search){
+  const totalDays=parseInt(document.getElementById('s-days').value)||58;
+  const refreshTxt=document.getElementById('refresh-time').textContent;
+  let data=getBSCOnlyData();
+  if(apmF&&apmF.length)data=data.filter(p=>apmF.includes(p.apm));
+  if(search)data=data.filter(p=>p.name.toLowerCase().includes(search));
+  const apmsInView=[...new Set(data.map(p=>p.apm).filter(Boolean))].sort();
+  let rows='';
+  apmsInView.forEach(apm=>{
+    const pas=data.filter(p=>p.apm===apm).sort((a,b)=>a.bscRank-b.bscRank);
+    if(!pas.length)return;
+    const totalTent=pas.reduce((s,p)=>s+p.tentative,0);
+    rows+=`<tr><td colspan="11" style="background:#0D6E4A;color:white;font-weight:700;font-size:13px;padding:7px 10px">APM: ${apm} &nbsp;|&nbsp; ${pas.length} PAs &nbsp;|&nbsp; Tentative Payout: ₹${totalTent.toLocaleString('en-IN')}</td></tr>`;
+    pas.forEach((p,i)=>{
+      const c=rowBg(p);const gateOK=p.prodElig&&p.bscElig;
+      rows+=`<tr style="background:${c.bg};color:${c.fg}">
+        <td style="text-align:center">${i+1}</td>
+        <td style="font-weight:700">${p.name}</td>
+        <td style="text-align:center">${p.prodDays}</td>
+        <td style="text-align:center">${(p.prodPct*100).toFixed(1)}%</td>
+        <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
+        <td style="text-align:center;font-weight:700">${p.bscRank}</td>
+        <td style="text-align:center;font-weight:700">${p.tentative>0?'₹'+p.tentative.toLocaleString('en-IN'):'₹0'}</td>
+        <td style="text-align:center">${p.actual>0?'₹'+p.actual.toLocaleString('en-IN'):'₹0'}</td>
+        <td style="text-align:center;font-weight:600;color:${p.diff>0?'#1F4E00':p.diff<0?'#7B0000':'#888'}">${p.diff>0?'+':''} ${Math.abs(p.diff)>0?'₹'+Math.abs(p.diff).toLocaleString('en-IN'):'—'}</td>
+        <td style="text-align:center">${gateOK?'✓ Both Gates':`✗ ${!p.prodElig?'Prod. Days Risk':!p.bscElig?'BSC Risk':''}`}</td>
+      </tr>`;
+    });
+    rows+=`<tr><td colspan="11" style="height:5px;background:#fff"></td></tr>`;
+  });
+  const filterNote=apmF&&apmF.length?'APMs: '+apmF.join(', '):'';
+  return`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #C0C0C0;padding:5px 8px;white-space:nowrap}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}</style>
+  </head><body>
+  <h2 style="color:#0D6E4A;margin-bottom:4px">Tentative Incentives — BSC Rank Only — FY26 Q4</h2>
+  <p style="color:#888;font-size:10pt;margin-bottom:4px">${refreshTxt} | Productive days gating NOT applied | Total Working Days: ${totalDays}</p>
+  ${filterNote?`<p style="color:#0D6E4A;font-size:10pt;margin-bottom:8px">Filters: ${filterNote}</p>`:''}
+  <table><thead><tr>
+    <th>S.No</th><th>PA Name</th><th>Prod. Days</th><th>Prod. %</th>
+    <th>BSC Score</th><th>BSC Rank</th><th>Tentative (₹)</th><th>Actual (₹)</th><th>Difference</th><th>Gate Status</th>
+  </tr></thead><tbody>${rows}</tbody></table>
+  <p style="margin-top:10px;font-size:9pt;color:#888">
+    <span style="background:#92D050;padding:2px 8px;border:1px solid #ccc">BSC 71–100</span>&nbsp;
+    <span style="background:#FFFF99;padding:2px 8px;border:1px solid #ccc">BSC 61–70</span>&nbsp;
+    <span style="background:#FFCCCC;padding:2px 8px;border:1px solid #ccc">BSC 0–60</span>
+  </p></body></html>`;
+}
+
+function copyBSCOnly(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const apmF=getSelectedMS('ms-bo-apm');const search=document.getElementById('bo-search').value.toLowerCase();
+  const html=buildBSCOnlyHtml(apmF,search);
+  copyHTML(html,'Tentative incentives copied — paste into Teams or Excel.');
+}
+function exportBSCOnlyExcel(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const html=buildBSCOnlyHtml(getSelectedMS('ms-bo-apm'),document.getElementById('bo-search').value.toLowerCase());
+  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='BSC_Tentative_Incentive_FY26Q4.xls';a.click();URL.revokeObjectURL(url);
+}
+function exportBSCOnlyPDF(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const html=buildBSCOnlyHtml(getSelectedMS('ms-bo-apm'),document.getElementById('bo-search').value.toLowerCase()).replace('</head>','<style>@page{size:A3 landscape;margin:12mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>');
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.onload=()=>w.print();
+}
+
+// ── TAB 8: INCENTIVE SUMMARY ───────────────────────────────────────
+function renderSummary(){
+  if(!allPAs.length)return;
+  const total=allPAs.length;
+  const elig=allPAs.filter(p=>p.eligible);
+  const ne=allPAs.filter(p=>!p.eligible);
+  const payout=elig.reduce((s,p)=>s+p.incentive,0);
+  const avgInc=elig.length?payout/elig.length:0;
+  const topBSC=Math.max(...allPAs.map(p=>p.bsc));
+  const minBSCElig=elig.length?Math.min(...elig.map(p=>p.bsc)):0;
+  const avgBSC=allPAs.reduce((s,p)=>s+p.bsc,0)/total;
+
+  document.getElementById('sum-cards').innerHTML=`
+    <div class="card"><div class="card-label">Total PAs</div><div class="card-value">${total}</div></div>
+    <div class="card green"><div class="card-label">✓ Eligible</div><div class="card-value">${elig.length}</div><div class="card-sub">${Math.round(elig.length/total*100)}% of team</div></div>
+    <div class="card red"><div class="card-label">✗ Not Eligible</div><div class="card-value">${ne.length}</div></div>
+    <div class="card gold"><div class="card-label">Total Payout</div><div class="card-value">${fmtINR(payout)}</div></div>
+    <div class="card"><div class="card-label">Avg Incentive (Eligible)</div><div class="card-value">${elig.length?fmtINR(avgInc):'—'}</div></div>
+    <div class="card blue"><div class="card-label">Highest BSC</div><div class="card-value">${fmt1(topBSC)}</div></div>
+    <div class="card"><div class="card-label">Min BSC (Eligible)</div><div class="card-value">${elig.length?fmt1(minBSCElig):'—'}</div></div>
+    <div class="card"><div class="card-label">Team Avg BSC</div><div class="card-value">${fmt1(avgBSC)}</div></div>`;
+
+  // Slab distribution
+  const totalPay=payout||1;
+  document.getElementById('sum-slab-tbody').innerHTML=SLABS.filter(s=>s.to!==Infinity).concat([{from:78,to:Infinity,amount:0}]).map((s,i)=>{
+    const label=s.to===Infinity?'78+':s.from+' – '+s.to;
+    const inSlab=elig.filter(p=>p.rank>=s.from&&p.rank<=s.to);
+    const slabPay=inSlab.reduce((t,p)=>t+p.incentive,0);
+    const pct=totalPay>0?(slabPay/totalPay*100).toFixed(1):'0.0';
+    const bg=i<2?'#E8F4EF':i<4?'#F5FAF0':i<7?'#FEFEF0':'#FFF5F5';
+    return`<tr style="background:${bg}">
+      <td style="font-weight:600">Slab ${i+1}</td>
+      <td style="text-align:center">${label}</td>
+      <td style="text-align:center;font-weight:600">${s.amount>0?fmtINR(s.amount):'₹0'}</td>
+      <td style="text-align:center;font-weight:600;color:${inSlab.length>0?'var(--gtext)':'var(--t3)'}">${inSlab.length}</td>
+      <td style="text-align:center;font-weight:600">${slabPay>0?fmtINR(slabPay):'—'}</td>
+      <td style="text-align:center">${slabPay>0?pct+'%':'—'}</td>
+    </tr>`;
+  }).join('')+`<tr style="background:#E8F4EF;font-weight:700">
+    <td colspan="3">Total</td>
+    <td style="text-align:center">${elig.length}</td>
+    <td style="text-align:center">${fmtINR(payout)}</td>
+    <td style="text-align:center">100%</td>
+  </tr>`;
+
+  // APM summary
+  const apms=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
+  document.getElementById('sum-apm-tbody').innerHTML=apms.map(apm=>{
+    const pas=allPAs.filter(p=>p.apm===apm);
+    const e=pas.filter(p=>p.eligible);
+    const ep=e.length?e.reduce((s,p)=>s+p.incentive,0):0;
+    const avgB=e.length?(e.reduce((s,p)=>s+p.bsc,0)/e.length).toFixed(1):'—';
+    const epct=pas.length?Math.round(e.length/pas.length*100):0;
+    return`<tr>
+      <td style="font-weight:600">${apm}</td>
+      <td style="text-align:center">${pas.length}</td>
+      <td style="text-align:center;color:var(--gtext);font-weight:600">${e.length}</td>
+      <td style="text-align:center;color:var(--rtext)">${pas.length-e.length}</td>
+      <td style="text-align:center">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:${epct}%;height:100%;background:var(--brand-mid)"></div></div>
+          <span style="font-size:11px;font-weight:600">${epct}%</span>
+        </div>
+      </td>
+      <td style="text-align:center">${avgB}</td>
+      <td style="text-align:center;font-weight:700;color:var(--amber)">${ep>0?fmtINR(ep):'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildSummaryHtml(){
+  const refreshTxt=document.getElementById('refresh-time').textContent;
+  const total=allPAs.length;
+  const elig=allPAs.filter(p=>p.eligible);
+  const payout=elig.reduce((s,p)=>s+p.incentive,0);
+  const avgInc=elig.length?payout/elig.length:0;
+  const topBSC=Math.max(...allPAs.map(p=>p.bsc));
+  const minBSCElig=elig.length?Math.min(...elig.map(p=>p.bsc)):0;
+  const avgBSC=allPAs.reduce((s,p)=>s+p.bsc,0)/total;
+
+  const slabRows=SLABS.map((s,i)=>{
+    const label=s.to===Infinity?'78+':s.from+' – '+s.to;
+    const inSlab=elig.filter(p=>p.rank>=s.from&&p.rank<=s.to);
+    const slabPay=inSlab.reduce((t,p)=>t+p.incentive,0);
+    const pct=payout>0?(slabPay/payout*100).toFixed(1):'0.0';
+    return`<tr><td>Slab ${i+1}</td><td style="text-align:center">${label}</td>
+      <td style="text-align:center">${s.amount>0?'₹'+s.amount.toLocaleString('en-IN'):'₹0'}</td>
+      <td style="text-align:center">${inSlab.length}</td>
+      <td style="text-align:center">${slabPay>0?'₹'+slabPay.toLocaleString('en-IN'):'—'}</td>
+      <td style="text-align:center">${slabPay>0?pct+'%':'—'}</td></tr>`;
+  }).join('');
+
+  const apms=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
+  const apmRows=apms.map(apm=>{
+    const pas=allPAs.filter(p=>p.apm===apm);
+    const e=pas.filter(p=>p.eligible);
+    const ep=e.reduce((s,p)=>s+p.incentive,0);
+    const avgB=e.length?(e.reduce((s,p)=>s+p.bsc,0)/e.length).toFixed(1):'—';
+    return`<tr><td style="font-weight:600">${apm}</td>
+      <td style="text-align:center">${pas.length}</td>
+      <td style="text-align:center">${e.length}</td>
+      <td style="text-align:center">${pas.length-e.length}</td>
+      <td style="text-align:center">${pas.length?Math.round(e.length/pas.length*100)+'%':'—'}</td>
+      <td style="text-align:center">${avgB}</td>
+      <td style="text-align:center;font-weight:700">${ep>0?'₹'+ep.toLocaleString('en-IN'):'—'}</td></tr>`;
+  }).join('');
+
+  return`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%;margin-bottom:20px}th,td{border:1px solid #C0C0C0;padding:6px 10px}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.metric-box{display:inline-block;border:1px solid #C0C0C0;padding:8px 16px;margin:4px;min-width:140px;text-align:center}.metric-label{font-size:9pt;color:#888;display:block}.metric-val{font-size:14pt;font-weight:700;color:#0D6E4A}</style>
+  </head><body>
+  <h2 style="color:#0D6E4A;margin-bottom:4px">Incentive Summary — FY26 Q4</h2>
+  <p style="color:#888;font-size:10pt;margin-bottom:12px">${refreshTxt}</p>
+  <div style="margin-bottom:16px">
+    <span class="metric-box"><span class="metric-label">Total PAs</span><span class="metric-val">${total}</span></span>
+    <span class="metric-box"><span class="metric-label">✓ Eligible</span><span class="metric-val" style="color:#0D6E4A">${elig.length}</span></span>
+    <span class="metric-box"><span class="metric-label">✗ Not Eligible</span><span class="metric-val" style="color:#C0392B">${total-elig.length}</span></span>
+    <span class="metric-box"><span class="metric-label">Eligibility %</span><span class="metric-val">${Math.round(elig.length/total*100)}%</span></span>
+    <span class="metric-box"><span class="metric-label">Total Payout</span><span class="metric-val" style="color:#B07800">₹${payout.toLocaleString('en-IN')}</span></span>
+    <span class="metric-box"><span class="metric-label">Avg Incentive</span><span class="metric-val">${elig.length?'₹'+Math.round(avgInc).toLocaleString('en-IN'):'—'}</span></span>
+    <span class="metric-box"><span class="metric-label">Highest BSC</span><span class="metric-val">${fmt1(topBSC)}</span></span>
+    <span class="metric-box"><span class="metric-label">Min BSC (Eligible)</span><span class="metric-val">${elig.length?fmt1(minBSCElig):'—'}</span></span>
+    <span class="metric-box"><span class="metric-label">Team Avg BSC</span><span class="metric-val">${fmt1(avgBSC)}</span></span>
+  </div>
+  <h3 style="color:#0D6E4A;margin-bottom:6px">Incentive Slab Distribution</h3>
+  <table><thead><tr><th>Slab</th><th>Rank Range</th><th>Amount (INR)</th><th># Eligible PAs</th><th>Total Payout (INR)</th><th>% of Total Payout</th></tr></thead>
+  <tbody>${slabRows}<tr style="font-weight:700;background:#E8F4EF"><td colspan="3">Total</td><td style="text-align:center">${elig.length}</td><td style="text-align:center">₹${payout.toLocaleString('en-IN')}</td><td style="text-align:center">100%</td></tr></tbody></table>
+  <h3 style="color:#0D6E4A;margin-bottom:6px">APM-wise Incentive Summary</h3>
+  <table><thead><tr><th>APM Name</th><th>Total PAs</th><th>✓ Eligible</th><th>✗ Not Eligible</th><th>Eligibility %</th><th>Avg BSC (Eligible)</th><th>Total Payout (INR)</th></tr></thead>
+  <tbody>${apmRows}</tbody></table>
+  </body></html>`;
+}
+
+function copySummary(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  copyHTML(buildSummaryHtml(),'Incentive Summary copied — paste into Teams or Excel.');
+}
+function exportSummaryExcel(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const blob=new Blob([buildSummaryHtml()],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='BSC_Incentive_Summary_FY26Q4.xls';a.click();URL.revokeObjectURL(url);
+}
+function exportSummaryPDF(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const html=buildSummaryHtml().replace('</head>','<style>@page{size:A4 portrait;margin:12mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>');
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.onload=()=>w.print();
+}
+
+function resetDashboard(){
+  allPAs=[];trend7D=[];d1Data=[];tlData=[];apmData=[];
+  document.getElementById('upload-screen').style.display='flex';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('file-input').value='';
+  showTab('incentive',document.querySelector('.tab-btn'));
+}
+</script>
+</body>
+</html>
