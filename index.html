@@ -531,7 +531,7 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
 <script>
 const SLABS=[{from:1,to:7,amount:120000},{from:8,to:14,amount:100000},{from:15,to:23,amount:80000},{from:24,to:33,amount:70000},{from:34,to:44,amount:60000},{from:45,to:56,amount:40000},{from:57,to:69,amount:30000},{from:70,to:77,amount:15000},{from:78,to:Infinity,amount:0}];
 const TARGETS={cc:21,aht:780,ttfa:0.95,ptt:145};
-const METRICS=[{key:'cc',label:'Connected Calls',target:21,fmt:v=>v.toFixed(1)},{key:'aht',label:'AHT First Call (s)',target:780,fmt:v=>Math.round(v)},{key:'ttfa',label:'Adjusted TTFA',target:0.95,fmt:v=>(v*100).toFixed(1)+'%'},{key:'ptt',label:'Pure Talk Time (min)',target:145,fmt:v=>v.toFixed(1)}];
+const METRICS=[{key:'cc',label:'Connected Calls',target:21,fmt:v=>Math.round(v)},{key:'aht',label:'AHT First Call (s)',target:780,fmt:v=>Math.round(v)},{key:'ttfa',label:'Adjusted TTFA',target:0.95,fmt:v=>Math.round(v*100)+'%'},{key:'ptt',label:'Pure Talk Time (min)',target:145,fmt:v=>Math.round(v)}];
 
 let allPAs=[], trend7D=[], tlData=[], apmData=[];
 let sortStates={incentive:{col:'rank',asc:true}};
@@ -909,7 +909,7 @@ function showPATrend(name,row){
         if(!v&&t.prod7[i]===0)return`<td style="color:#ccc">—</td>`;
         const pct=v/m.target;
         const col=pct>=1?'#0D6E4A':pct>=0.8?'#B07800':'#C0392B';
-        return`<td style="font-weight:600;color:${col}">${m.label.includes('%')?(v).toFixed(1)+'%':m.label.includes('AHT')?Math.round(v):v.toFixed(1)}</td>`;
+        return`<td style="font-weight:600;color:${col}">${m.label.includes('%')?Math.round(v)+'%':Math.round(v)}</td>`;
       }).join('');
       return`<tr><td style="font-weight:500">${m.label}</td><td style="color:var(--t2)">${m.target}${m.label.includes('%')?'%':''}</td>${cells}</tr>`;
     }).join('')}</tbody>
@@ -1004,7 +1004,7 @@ function getWeakestMetric(p){
   const contribs=[
     {key:'cc',label:'Connected Calls',actual:fmt1(p.cc),target:TARGETS.cc,contrib:Math.min(p.cc/TARGETS.cc,1)*25},
     {key:'aht',label:'AHT First Call',actual:Math.round(p.aht)+'s',target:TARGETS.aht+'s',contrib:Math.min(p.aht/TARGETS.aht,1)*25},
-    {key:'ttfa',label:'Adjusted TTFA',actual:(p.ttfa*100).toFixed(1)+'%',target:'95%',contrib:Math.min(p.ttfa/TARGETS.ttfa,1)*25},
+    {key:'ttfa',label:'Adjusted TTFA',actual:Math.round(p.ttfa*100)+'%',target:'95%',contrib:Math.min(p.ttfa/TARGETS.ttfa,1)*25},
     {key:'ptt',label:'Pure Talk Time',actual:fmt1(p.ptt)+'min',target:TARGETS.ptt+'min',contrib:Math.min(p.ptt/TARGETS.ptt,1)*25},
   ].filter(m=>m.contrib<25);
   return contribs.sort((a,b)=>a.contrib-b.contrib)[0]||{label:'All metrics capped',actual:'—',target:'—'};
@@ -1409,7 +1409,7 @@ function buildTLHtml(filters){
         <td style="text-align:center">${Math.round(e.paCnt||0)}</td>
         <td style="text-align:center">${fmt1(e.cc)}</td><td style="text-align:center">${ccPct}%</td>
         <td style="text-align:center">${Math.round(e.aht)}</td><td style="text-align:center">${ahtPct}%</td>
-        <td style="text-align:center">${(e.ttfa*100).toFixed(1)}%</td><td style="text-align:center">${ttfaPct}%</td>
+        <td style="text-align:center">${Math.round(e.ttfa*100)}%</td><td style="text-align:center">${ttfaPct}%</td>
         <td style="text-align:center">${fmt1(e.ptt)}</td><td style="text-align:center">${pttPct}%</td>
         <td style="text-align:center;font-weight:700;background:${bscBg};color:${bscCol}">${fmt1(e.bsc)}</td>
         <td style="font-size:10pt;color:#0D6E4A">${above?'Focus: '+focusLabel+' → Beat '+above.name+' (BSC '+fmt1(above.bsc)+')':'Rank 1 — Defend'}</td>
