@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BSC Incentive Dashboard</title>
+<title>Emeritus Performance Hub</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -84,6 +84,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .tbl-title{font-size:13px;font-weight:600}
 .tbl-count{font-size:11px;color:var(--t3)}
 .tbl-scroll{overflow-x:auto}
+.pa-sticky-table{table-layout:auto}
+.hide-details .col-gate{display:none}
+.col-gate{white-space:nowrap}
+/* STICKY TABLE HEADER */
+#pa-tbl-scroll{max-height:65vh;overflow-y:auto;overflow-x:auto}
+.pa-sticky-table thead th{position:sticky;top:0;z-index:3;background:#F8F8F4;border-bottom:.5px solid var(--border-s)}
+.pa-sticky-table thead th:nth-child(1){position:sticky;top:0;left:0;z-index:5;background:#F8F8F4}
+.pa-sticky-table thead th:nth-child(2){position:sticky;top:0;left:36px;z-index:5;background:#F8F8F4}
+.pa-sticky-table thead th:nth-child(3){position:sticky;top:0;left:176px;z-index:5;background:#F8F8F4}
+/* FLOATING SCROLL */
+.float-scroll-wrap{overflow-x:auto;overflow-y:hidden;height:14px;margin-bottom:2px;border-radius:4px}
+.float-scroll-inner{height:14px}
+.pa-sticky-table th:nth-child(1),
+.pa-sticky-table td:nth-child(1){position:sticky;left:0;z-index:2;background:#F8F8F4;min-width:36px}
+.pa-sticky-table td:nth-child(1){background:var(--card)}
+.pa-sticky-table th:nth-child(2),
+.pa-sticky-table td:nth-child(2){position:sticky;left:36px;z-index:2;background:#F8F8F4;min-width:140px;border-right:.5px solid var(--border-s)}
+.pa-sticky-table td:nth-child(2){background:var(--card)}
+.pa-sticky-table th:nth-child(3),
+.pa-sticky-table td:nth-child(3){position:sticky;left:176px;z-index:2;background:#F8F8F4;min-width:90px;border-right:.5px solid var(--border-s)}
+.pa-sticky-table td:nth-child(3){background:var(--card)}
+.pa-sticky-table tr:hover td:nth-child(1),
+.pa-sticky-table tr:hover td:nth-child(2),
+.pa-sticky-table tr:hover td:nth-child(3){background:#FAFAF6}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead th{background:#F8F8F4;padding:8px 11px;text-align:left;font-size:10px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;border-bottom:.5px solid var(--border);cursor:pointer;user-select:none}
 thead th:hover{color:var(--brand)}
@@ -204,7 +228,7 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
 </head>
 <body>
 <div class="topbar">
-  <div><div class="topbar-logo">BSC Incentive Dashboard</div><div class="topbar-sub">Online Certificates · India Outbound</div></div>
+  <div><div class="topbar-logo">Emeritus Performance Hub</div><div class="topbar-sub">BSC • Incentives • Effort Analytics &nbsp;·&nbsp; Online Certificates · India Outbound</div></div>
   <div id="topbar-refresh" style="font-size:11px;opacity:.75;text-align:right"></div>
 </div>
 
@@ -239,11 +263,9 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
   <div class="tab-nav">
     <button class="tab-btn active" onclick="showTab('incentive',this)">Incentive Report</button>
     <button class="tab-btn" onclick="showTab('trend7d',this)">7-Day Trend</button>
-    <button class="tab-btn" onclick="showTab('d1',this)">D-1 vs QTD</button>
     <button class="tab-btn" onclick="showTab('atrisk',this)">At-Risk Tracker</button>
     <button class="tab-btn" onclick="showTab('rankadvisor',this)">Rank Advisor</button>
     <button class="tab-btn" onclick="showTab('tlview',this)">TL / APM View</button>
-    <button class="tab-btn" onclick="showTab('bsconly',this)">Tentative (BSC Only)</button>
     <button class="tab-btn" onclick="showTab('summary',this)">Incentive Summary</button>
   </div>
 
@@ -280,18 +302,23 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
     </div>
     <div class="filters">
       <span class="f-label">Filter:</span>
-      <div class="ms-wrap" id="ms-f-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-f-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-f-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-f-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-f-apm" checked onchange="msToggleAll('ms-f-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-f-apm-list"></div></div></div></div>
+      <div class="ms-wrap" id="ms-ir-tl"><button class="ms-trigger" data-label="TLs" onclick="toggleMS(event,'ms-ir-tl')">All TLs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-ir-tl-panel" style="display:none"><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-ir-tl" checked onchange="msToggleAll('ms-ir-tl',this)"> Select All</label><div class="ms-divider"></div><div id="ms-ir-tl-list"></div></div></div></div>
+      <div class="ms-wrap" id="ms-f-apm"><button class="ms-trigger" data-label="APMs" onclick="toggleMS(event,'ms-f-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-f-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-f-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-f-apm" checked onchange="msToggleAll('ms-f-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-f-apm-list"></div></div></div></div>
       <select id="f-elig" onchange="renderIncentiveTable()"><option value="">All</option><option value="yes">Eligible only</option><option value="no">Not Eligible</option></select>
       <input type="text" id="f-search" placeholder="Search PA name…" oninput="renderIncentiveTable()">
       <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn-sm" style="background:#217346" onclick="copyPATable()">📋 Copy for Teams</button>
-        <button class="btn-sm" style="background:#1D6F42" onclick="exportPAExcel()">⬇ Excel (APM-wise)</button>
+        <button class="btn-sm" style="background:#555;font-size:11px" onclick="toggleDetails(this)" id="details-toggle">⊞ Show Gate Details</button>
+        <button class="btn-sm" style="background:#217346" onclick="copyPAScreen()">📋 Copy (Screen)</button>
+        <button class="btn-sm" style="background:#1565A0" onclick="copyPAExcelFmt()">📊 Copy (Excel Format)</button>
+        <button class="btn-sm" style="background:#6A0DAD" onclick="copyPATentative()">📨 Copy (Tentative)</button>
+        <button class="btn-sm" style="background:#1D6F42" onclick="exportPAExcel()">⬇ Excel</button>
         <button class="btn-sm" style="background:#C0392B" onclick="exportPAPDF()">⬇ PDF</button>
       </div>
     </div>
     <div class="tbl-wrap">
       <div class="tbl-hdr"><span class="tbl-title">PA Incentive Report</span><span class="tbl-count" id="showing-count"></span></div>
-      <div class="tbl-scroll"><table>
+      <div class="float-scroll-wrap" id="pa-float-scroll"><div class="float-scroll-inner" id="pa-float-inner"></div></div>
+      <div class="tbl-scroll" id="pa-tbl-scroll"><table class="pa-sticky-table">
         <thead><tr>
           <th>S.No</th>
           <th onclick="sortBy('name','incentive')">PA Name</th>
@@ -303,9 +330,12 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
           <th onclick="sortBy('aht','incentive')">AHT (s)</th>
           <th onclick="sortBy('ttfa','incentive')">Adj. TTFA</th>
           <th onclick="sortBy('ptt','incentive')">PTT (min)</th>
-          <th onclick="sortBy('eligible','incentive')">Eligible</th>
-          <th onclick="sortBy('rank','incentive')">Rank</th>
-          <th onclick="sortBy('incentive','incentive')">Incentive (₹)</th>
+          <th onclick="sortBy('rank','incentive')">BSC Rank</th>
+          <th onclick="sortBy('prodElig','incentive')" class="col-gate">Prod Days Elig.?</th>
+          <th onclick="sortBy('bscElig','incentive')" class="col-gate">BSC Elig.?</th>
+          <th onclick="sortBy('eligible','incentive')" class="col-gate">Incentive Elig.?</th>
+          <th onclick="sortBy('incentive','incentive')">Actual (₹)</th>
+          <th onclick="sortBy('tentative','incentive')">Tentative (₹)</th>
         </tr></thead>
         <tbody id="pa-tbody"></tbody>
       </table></div>
@@ -318,7 +348,7 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
   <div id="tab-trend7d" class="tab-content">
     <div class="filters">
       <span class="f-label">Filter:</span>
-      <div class="ms-wrap" id="ms-t7-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-t7-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-t7-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-t7-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-t7-apm" checked onchange="msToggleAll('ms-t7-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-t7-apm-list"></div></div></div></div>
+      <div class="ms-wrap" id="ms-t7-apm"><button class="ms-trigger" data-label="APMs" onclick="toggleMS(event,'ms-t7-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-t7-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-t7-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-t7-apm" checked onchange="msToggleAll('ms-t7-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-t7-apm-list"></div></div></div></div>
       <select id="t7-sort" onchange="renderTrend()">
         <option value="bsc">Sort by QTD BSC</option>
         <option value="trend">Sort by 7D Trend</option>
@@ -344,33 +374,6 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
     </div>
   </div>
 
-  <!-- TAB 3: D-1 vs QTD -->
-  <div id="tab-d1" class="tab-content">
-    <div class="d1-section">
-      <div class="d1-date" id="d1-date-label"></div>
-      <div class="filters">
-        <span class="f-label">Filter:</span>
-        <div class="ms-wrap" id="ms-d1-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-d1-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-d1-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-d1-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-d1-apm" checked onchange="msToggleAll('ms-d1-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-d1-apm-list"></div></div></div></div>
-        <input type="text" id="d1-search" placeholder="Search PA name…" oninput="renderD1()">
-      </div>
-      <div class="cards-row" id="d1-cards"></div>
-      <div class="tbl-wrap">
-        <div class="tbl-hdr"><span class="tbl-title">Yesterday vs QTD Comparison</span><span class="tbl-count" id="d1-count"></span></div>
-        <div class="tbl-scroll"><table>
-          <thead><tr>
-            <th>PA Name</th><th>APM</th>
-            <th>QTD BSC</th><th>D-1 BSC</th><th>△ BSC</th>
-            <th>QTD Calls</th><th>D-1 Calls</th>
-            <th>QTD AHT</th><th>D-1 AHT</th>
-            <th>QTD TTFA</th><th>D-1 TTFA</th>
-            <th>QTD PTT</th><th>D-1 PTT</th>
-          </tr></thead>
-          <tbody id="d1-tbody"></tbody>
-        </table></div>
-      </div>
-    </div>
-  </div>
-
   <!-- TAB 4: AT-RISK TRACKER -->
   <div id="tab-atrisk" class="tab-content">
     <div class="settings-bar">
@@ -389,7 +392,7 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
     </div>
     <div class="filters">
       <span class="f-label">Filter:</span>
-      <div class="ms-wrap" id="ms-ar-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-ar-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-ar-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-ar-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-ar-apm" checked onchange="msToggleAll('ms-ar-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-ar-apm-list"></div></div></div></div>
+      <div class="ms-wrap" id="ms-ar-apm"><button class="ms-trigger" data-label="APMs" onclick="toggleMS(event,'ms-ar-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-ar-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-ar-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-ar-apm" checked onchange="msToggleAll('ms-ar-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-ar-apm-list"></div></div></div></div>
       <select id="ar-risk" onchange="renderAtRisk()">
         <option value="">All Risk Types</option>
         <option value="double">Double Risk</option>
@@ -403,11 +406,23 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
 
   <!-- TAB 5: RANK ADVISOR -->
   <div id="tab-rankadvisor" class="tab-content">
-    <div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span class="f-label">Select PA:</span>
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="f-label">PA:</span>
       <select class="advisor-select" id="adv-pa-select" onchange="renderAdvisor()"><option value="">— Choose a PA —</option></select>
     </div>
-    <div id="advisor-output"><div class="no-data">Select a PA above to see their rank improvement advice.</div></div>
+    <div id="advisor-output"><div class="no-data">Select a PA above to see rank improvement advice.</div></div>
+    <div style="height:1px;background:var(--border);margin:20px 0"></div>
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="f-label">TL:</span>
+      <select class="advisor-select" id="adv-tl-select" onchange="renderTLAdvisor()"><option value="">— Choose a TL —</option></select>
+    </div>
+    <div id="tl-advisor-output"><div class="no-data">Select a TL above to see rank improvement advice.</div></div>
+    <div style="height:1px;background:var(--border);margin:20px 0"></div>
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span class="f-label">APM:</span>
+      <select class="advisor-select" id="adv-apm-select" onchange="renderAPMAdvisor()"><option value="">— Choose an APM —</option></select>
+    </div>
+    <div id="apm-advisor-output"><div class="no-data">Select an APM above to see rank improvement advice.</div></div>
   </div>
 
   <!-- TAB 6: TL / APM VIEW -->
@@ -425,76 +440,69 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
     </div>
     <div class="cards-row" id="tl-summary-cards"></div>
     <div class="section-title">TL Rankings — BSC Score & Rank Improvement Advice</div>
+    <div id="tl-apm-map" style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px"></div>
     <div id="tl-cards-list"></div>
     <div class="section-title" style="margin-top:20px">APM Rankings — Team BSC & Rank Improvement Advice</div>
     <div id="apm-cards-list"></div>
   </div>
 
-  <!-- TAB 7: TENTATIVE INCENTIVES (BSC ONLY) -->
-  <div id="tab-bsconly" class="tab-content">
-    <div style="background:var(--abg);border:.5px solid #F0D080;border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:12px;color:#7A5000">
-      <strong>Tentative view:</strong> Ranked by BSC score only — productive days gating (≥75%) is not applied. Every PA receives a tentative amount purely by BSC rank. Useful for showing PAs what they stand to earn if they meet the attendance gate.
-    </div>
-    <div class="filters">
-      <span class="f-label">Filter:</span>
-      <div class="ms-wrap" id="ms-bo-apm"><button class="ms-trigger" onclick="toggleMS(event,'ms-bo-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-bo-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-bo-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-bo-apm" checked onchange="msToggleAll('ms-bo-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-bo-apm-list"></div></div></div></div>
-      <input type="text" id="bo-search" placeholder="Search PA name…" oninput="renderBSCOnly()">
+  <!-- TAB 7: INCENTIVE SUMMARY -->
+  <div id="tab-summary" class="tab-content">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span class="f-label">Filter TL:</span>
+      <div class="ms-wrap" id="ms-sum-tl"><button class="ms-trigger" data-label="TLs" onclick="toggleMS(event,'ms-sum-tl')">All TLs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-sum-tl-panel" style="display:none"><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-sum-tl" checked onchange="msToggleAll('ms-sum-tl',this)"> Select All</label><div class="ms-divider"></div><div id="ms-sum-tl-list"></div></div></div></div>
+      <span class="f-label">Filter APM:</span>
+      <div class="ms-wrap" id="ms-sum-apm"><button class="ms-trigger" data-label="APMs" onclick="toggleMS(event,'ms-sum-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-sum-apm-panel" style="display:none"><div class="ms-search"><input type="text" placeholder="Search APM…" oninput="msSearch(this,'ms-sum-apm')"></div><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-sum-apm" checked onchange="msToggleAll('ms-sum-apm',this);renderSummary()"> Select All</label><div class="ms-divider"></div><div id="ms-sum-apm-list"></div></div></div></div>
       <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn-sm" style="background:#217346" onclick="copyBSCOnly()">📋 Copy for Teams</button>
-        <button class="btn-sm" style="background:#1D6F42" onclick="exportBSCOnlyExcel()">⬇ Excel</button>
-        <button class="btn-sm" style="background:#C0392B" onclick="exportBSCOnlyPDF()">⬇ PDF</button>
+        <button class="btn-sm" style="background:#217346" onclick="copySummary()">📋 Copy for Teams</button>
+        <button class="btn-sm" style="background:#1D6F42" onclick="exportSummaryExcel()">⬇ Excel</button>
+        <button class="btn-sm" style="background:#C0392B" onclick="exportSummaryPDF()">⬇ PDF</button>
       </div>
     </div>
-    <div class="tbl-wrap">
-      <div class="tbl-hdr"><span class="tbl-title">Tentative Incentives — BSC Rank Only</span><span class="tbl-count" id="bo-count"></span></div>
-      <div class="tbl-scroll"><table>
-        <thead><tr>
-          <th>S.No</th><th onclick="bsSort('name')">PA Name</th><th onclick="bsSort('apm')">APM</th>
-          <th onclick="bsSort('prodDays')">Prod. Days</th><th onclick="bsSort('prodPct')">Prod. %</th>
-          <th onclick="bsSort('bsc')">BSC Score</th><th onclick="bsSort('bscRank')">BSC Rank</th>
-          <th onclick="bsSort('tentative')">Tentative (₹)</th>
-          <th onclick="bsSort('actual')">Actual (₹)</th><th>Difference</th>
-          <th>Gate Status</th>
-        </tr></thead>
-        <tbody id="bo-tbody"></tbody>
-      </table></div>
+    <div style="background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:18px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">🏆 Incentive Summary — FY26 Q4</div>
+      <div class="cards-row" id="sum-cards-row1"></div>
+      <div class="cards-row" style="margin-top:10px" id="sum-cards-row2"></div>
     </div>
-    <div class="cards-row" id="bo-cards" style="margin-top:4px"></div>
-  </div>
-
-  <!-- TAB 8: INCENTIVE SUMMARY -->
-  <div id="tab-summary" class="tab-content">
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-      <button class="btn-sm" style="background:#217346" onclick="copySummary()">📋 Copy for Teams</button>
-      <button class="btn-sm" style="background:#1D6F42" onclick="exportSummaryExcel()">⬇ Excel</button>
-      <button class="btn-sm" style="background:#C0392B" onclick="exportSummaryPDF()">⬇ PDF</button>
-    </div>
-    <div class="cards-row" id="sum-cards"></div>
-    <div class="section-title" style="margin-top:4px">Incentive Slab Distribution</div>
+    <div class="section-title">📋 Incentive Slab Distribution</div>
     <div class="tbl-wrap" style="margin-bottom:20px">
       <div class="tbl-scroll"><table>
         <thead><tr><th>Slab</th><th>Rank Range</th><th>Amount (INR)</th><th># Eligible PAs</th><th>Total Payout (INR)</th><th>% of Total Payout</th></tr></thead>
         <tbody id="sum-slab-tbody"></tbody>
       </table></div>
     </div>
-    <div class="section-title">APM-wise Incentive Summary</div>
+    <div class="section-title">👤 APM-wise Incentive Summary</div>
+    <div class="tbl-wrap" style="margin-bottom:20px">
+      <div class="tbl-scroll"><table>
+        <thead><tr><th>APM Name</th><th>Total PAs</th><th>✓ Eligible</th><th>✗ Not Eligible</th><th>Eligibility %</th><th>Total Payout (INR)</th></tr></thead>
+        <tbody id="sum-apm-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="section-title">🏢 TL-wise Incentive Summary</div>
+    <div class="tbl-wrap" style="margin-bottom:20px">
+      <div class="tbl-scroll"><table>
+        <thead><tr><th>TL Name</th><th>Total PAs</th><th>✓ Eligible</th><th>✗ Not Eligible</th><th>Eligibility %</th><th>Total Payout (INR)</th></tr></thead>
+        <tbody id="sum-tl-tbody"></tbody>
+      </table></div>
+    </div>
+    <div class="section-title">📄 Full PA Incentive Detail</div>
     <div class="tbl-wrap">
       <div class="tbl-scroll"><table>
-        <thead><tr><th>APM Name</th><th>Total PAs</th><th>✓ Eligible</th><th>✗ Not Eligible</th><th>Eligibility %</th><th>Avg BSC (Eligible)</th><th>Total Payout (INR)</th></tr></thead>
-        <tbody id="sum-apm-tbody"></tbody>
+        <thead><tr><th>BSC Rank</th><th>PA Name</th><th>APM</th><th>TL</th><th>Prod Days</th><th>Total WD</th><th>Prod %</th><th>BSC Score</th><th>Prod Days Eligible?</th><th>BSC Eligible?</th><th>Incentive Eligible?</th><th>Incentive Amount (INR)</th></tr></thead>
+        <tbody id="sum-pa-tbody" style="font-size:10px"></tbody>
       </table></div>
     </div>
   </div>
 </div>
 
-<div class="footer">BSC Incentive Dashboard · Online Certificates · India Outbound · Gating: ≥75% Productive Days & BSC ≥60</div>
+<div class="footer">Emeritus Performance Hub · BSC • Incentives • Effort Analytics · Online Certificates · India Outbound · Gating: ≥75% Productive Days & BSC ≥60</div>
 
 <script>
 const SLABS=[{from:1,to:7,amount:120000},{from:8,to:14,amount:100000},{from:15,to:23,amount:80000},{from:24,to:33,amount:70000},{from:34,to:44,amount:60000},{from:45,to:56,amount:40000},{from:57,to:69,amount:30000},{from:70,to:77,amount:15000},{from:78,to:Infinity,amount:0}];
 const TARGETS={cc:21,aht:780,ttfa:0.95,ptt:145};
 const METRICS=[{key:'cc',label:'Connected Calls',target:21,fmt:v=>v.toFixed(1)},{key:'aht',label:'AHT First Call (s)',target:780,fmt:v=>Math.round(v)},{key:'ttfa',label:'Adjusted TTFA',target:0.95,fmt:v=>(v*100).toFixed(1)+'%'},{key:'ptt',label:'Pure Talk Time (min)',target:145,fmt:v=>v.toFixed(1)}];
 
-let allPAs=[], trend7D=[], d1Data=[], tlData=[], apmData=[];
+let allPAs=[], trend7D=[], tlData=[], apmData=[];
 let sortStates={incentive:{col:'rank',asc:true}};
 
 function sn(v){const n=parseFloat(v);return isNaN(n)?0:n;}
@@ -531,19 +539,17 @@ function processFile(file){
     const wb=XLSX.read(e.target.result,{type:'array'});
     const paSheet=wb.SheetNames.find(s=>s.trim()==='PA');
     const t7Sheet=wb.SheetNames.find(s=>s.trim()==='L7D Trend PA');
-    const d1Sheet=wb.SheetNames.find(s=>s.trim()==='D-1');
-    const tlSheet=wb.SheetNames.find(s=>s.trim()==='TL');
+        const tlSheet=wb.SheetNames.find(s=>s.trim()==='TL');
     if(!paSheet){alert('Could not find "PA" sheet.');return;}
     const paRows=XLSX.utils.sheet_to_json(wb.Sheets[paSheet],{header:1,defval:null});
     const t7Rows=t7Sheet?XLSX.utils.sheet_to_json(wb.Sheets[t7Sheet],{header:1,defval:null}):[];
-    const d1Rows=d1Sheet?XLSX.utils.sheet_to_json(wb.Sheets[d1Sheet],{header:1,defval:null}):[];
     const tlRows=tlSheet?XLSX.utils.sheet_to_json(wb.Sheets[tlSheet],{header:1,defval:null}):[];
-    parseAll(paRows,t7Rows,d1Rows,tlRows,file.name);
+    parseAll(paRows,t7Rows,tlRows,file.name);
   };
   reader.readAsArrayBuffer(file);
 }
 
-function parseAll(paRows,t7Rows,d1Rows,tlRows,fileName){
+function parseAll(paRows,t7Rows,tlRows,fileName){
   const refreshTime=(paRows[0]||[])[0]||'';
   const rtRaw=String(refreshTime).replace('Report last Refresh Time: ','').trim();
   const rt=formatRefreshTime(rtRaw);
@@ -577,23 +583,6 @@ function parseAll(paRows,t7Rows,d1Rows,tlRows,fileName){
   }));
   window._t7Dates=dates;
 
-  // D-1 sheet
-  const d1Date=(d1Rows[0]||[])[2];
-  let d1DateStr='';
-  if(d1Date){try{const dd=new Date(d1Date);d1DateStr=dd.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});}catch(e){d1DateStr=String(d1Date);}}
-  window._d1Date=d1DateStr;
-  // Find PA rows in D-1: look for rows where col 0 matches a known PA name
-  const paNames=new Set(allPAs.map(p=>p.name));
-  d1Data=[];
-  d1Rows.slice(4).forEach(r=>{
-    if(!r[0])return;
-    const name=String(r[0]).trim();
-    if(paNames.has(name)){
-      d1Data.push({name,calls:sn(r[6]),callsPct:sn(r[7]),aht:sn(r[8]),ahtPct:sn(r[9]),
-        ttfa:sn(r[10]),ttfaPct:sn(r[11]),ptt:sn(r[12]),pttPct:sn(r[13]),bsc:sn(r[14])});
-    }
-  });
-
   // TL sheet - parse TL and APM blocks
   tlData=[];apmData=[];
   let section='';
@@ -612,13 +601,15 @@ function parseAll(paRows,t7Rows,d1Rows,tlRows,fileName){
 
   // Populate multi-select APM dropdowns
   const apms=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
-  ['ms-f-apm','ms-t7-apm','ms-d1-apm','ms-ar-apm'].forEach(id=>populateMS(id,apms,getRefreshFn(id)));
-  populateMS('ms-bo-apm',apms,'renderBSCOnly()');
-  // TL and APM selects in TL view
-  const tlNames=[...new Set(tlData.map(t=>t.name).filter(Boolean))].sort();
-  const apmNames=[...new Set(apmData.map(a=>a.name).filter(Boolean))].sort();
+  ['ms-f-apm','ms-t7-apm','ms-ar-apm'].forEach(id=>populateMS(id,apms,getRefreshFn(id)));
+  // TL and APM selects in TL view — use allPAs for consistent naming
+  const tlNames=[...new Set(allPAs.map(p=>p.tl).filter(Boolean))].sort();
+  const paApmNames=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
+  populateMS('ms-ir-tl',tlNames,'renderIncentiveTable()');
   populateMS('ms-tl-sel',tlNames,'renderTLView()');
-  populateMS('ms-apm-sel',apmNames,'renderTLView()');
+  populateMS('ms-apm-sel',paApmNames,'renderTLView()');
+  populateMS('ms-sum-tl',tlNames,'renderSummary()');
+  populateMS('ms-sum-apm',apms,'renderSummary()');
 
   // Populate PA advisor select
   const advSel=document.getElementById('adv-pa-select');
@@ -639,7 +630,7 @@ function recalculate(){
   allPAs.forEach(p=>{
     p.prodPct=totalDays>0?p.prodDays/totalDays:0;
     p.prodElig=p.prodPct>=minProd;
-    p.bscElig=p.bsc>=minBSC;
+    p.bscElig=p.bsc>=minBSC;// minBSC defaults to 60 per FY26 Q4 policy
     p.eligible=p.prodElig&&p.bscElig;
   });
   const sorted=[...allPAs].sort((a,b)=>{
@@ -650,16 +641,28 @@ function recalculate(){
     return b.ttfa-a.ttfa;
   });
   sorted.forEach((p,i)=>p.rank=i+1);
-  allPAs.forEach(p=>p.incentive=p.eligible?getSlab(p.rank):0);
+  // BSC-only rank for tentative (no prod gate)
+  const bscSorted=[...allPAs].sort((a,b)=>{
+    if(b.bsc!==a.bsc)return b.bsc-a.bsc;
+    if(b.ttTB!==a.ttTB)return b.ttTB-a.ttTB;
+    if(b.callsTB!==a.callsTB)return b.callsTB-a.callsTB;
+    return b.aht-a.aht;
+  });
+  bscSorted.forEach((p,i)=>p.bscRank=i+1);
+  allPAs.forEach(p=>{
+    p.incentive=p.eligible?getSlab(p.rank):0;
+    // Tentative = BSC gate applies, productive days gate does NOT
+    p.tentative=p.bscElig?getSlab(p.bscRank):0;
+  });
   updateSummaryCards();
   renderIncentiveTable();
   renderAPMGrid();
   renderTrend();
-  renderD1();
   renderAtRisk();
   renderTLView();
-  renderBSCOnly();
   renderSummary();
+  populateAdvisors();
+  initFloatScroll();
 }
 
 function updateSummaryCards(){
@@ -680,13 +683,15 @@ function updateSummaryCards(){
 let incSortCol='rank',incSortAsc=true;
 function sortBy(col,tab){incSortCol=col;incSortAsc=col===incSortCol?!incSortAsc:col==='rank';renderIncentiveTable();}
 function renderIncentiveTable(){
-  const apmF=getSelectedMS('ms-f-apm');
+  const tlF  =getSelectedMS('ms-ir-tl');
+  const apmF =getSelectedMS('ms-f-apm');
   const eligF=document.getElementById('f-elig').value;
   const search=document.getElementById('f-search').value.toLowerCase();
   let data=[...allPAs];
-  if(apmF.length)data=data.filter(p=>apmF.includes(p.apm));
+  if(tlF.length)  data=data.filter(p=>tlF.includes(p.tl));
+  if(apmF.length) data=data.filter(p=>apmF.includes(p.apm));
   if(eligF==='yes')data=data.filter(p=>p.eligible);
-  if(eligF==='no')data=data.filter(p=>!p.eligible);
+  if(eligF==='no') data=data.filter(p=>!p.eligible);
   if(search)data=data.filter(p=>p.name.toLowerCase().includes(search));
   data.sort((a,b)=>{
     let va=a[incSortCol],vb=b[incSortCol];
@@ -707,13 +712,16 @@ function renderIncentiveTable(){
       <td class="${p.prodElig?'metric-good':'metric-bad'}">${p.prodDays}</td>
       <td class="${p.prodElig?'metric-good':'metric-bad'}">${pp}%</td>
       <td><div class="bsc-bar-wrap"><div class="bsc-bar"><div class="bsc-bar-fill" style="width:${bscF}%"></div></div><span class="bsc-val ${p.bscElig?'metric-good':'metric-bad'}">${fmt1(p.bsc)}</span></div></td>
-      <td class="metric-val">${fmt1(p.cc)}</td>
+      <td class="metric-val">${Math.round(p.cc)}</td>
       <td class="metric-val">${Math.round(p.aht)}</td>
-      <td class="metric-val">${(p.ttfa*100).toFixed(1)}%</td>
-      <td class="metric-val">${fmt1(p.ptt)}</td>
-      <td><span class="badge ${p.eligible?'yes':'no'}">${p.eligible?'✓ Eligible':'✗ Not Eligible'}</span></td>
-      <td><span class="rank-badge${p.rank<=7?' top':''}">${p.rank}</span></td>
+      <td class="metric-val">${Math.round(p.ttfa*100)}%</td>
+      <td class="metric-val">${Math.round(p.ptt)}</td>
+      <td style="text-align:center"><span class="rank-badge${p.bscRank<=7?' top':''}">${p.bscRank}</span></td>
+      <td class="col-gate" style="text-align:center"><span class="badge ${p.prodElig?'yes':'no'}">${p.prodElig?'✓':'✗'}</span></td>
+      <td class="col-gate" style="text-align:center"><span class="badge ${p.bscElig?'yes':'no'}">${p.bscElig?'✓':'✗'}</span></td>
+      <td class="col-gate" style="text-align:center"><span class="badge ${p.eligible?'yes':'no'}">${p.eligible?'✓ ELIG':'✗ NOT'}</span></td>
       <td><span class="inc-amt ${ic}">${p.incentive>0?fmtINR(p.incentive):'—'}</span></td>
+      <td style="font-weight:600;color:#1565A0;font-size:12px">${p.tentative>0?fmtINR(p.tentative):'—'}</td>
     </tr>`;
   }).join('');
 }
@@ -821,54 +829,6 @@ function showPATrend(name,row){
   document.getElementById('t7-metric-wrap').innerHTML=html;
 }
 
-// D-1 vs QTD
-function renderD1(){
-  const d1DateStr=window._d1Date||'';
-  document.getElementById('d1-date-label').textContent='Yesterday: '+d1DateStr;
-  const apmF=getSelectedMS('ms-d1-apm');
-  const search=document.getElementById('d1-search').value.toLowerCase();
-  const d1Map=new Map(d1Data.map(d=>[d.name,d]));
-
-  let data=allPAs.filter(p=>{
-    if(apmF.length&&!apmF.includes(p.apm))return false;
-    if(search&&!p.name.toLowerCase().includes(search))return false;
-    return true;
-  });
-
-  // Cards
-  const hasD1=d1Data.length>0;
-  const avgD1BSC=hasD1?d1Data.filter(d=>d.bsc>0).reduce((s,d)=>s+d.bsc,0)/(d1Data.filter(d=>d.bsc>0).length||1):0;
-  const avgQTD=allPAs.length?allPAs.reduce((s,p)=>s+p.bsc,0)/allPAs.length:0;
-  document.getElementById('d1-cards').innerHTML=`
-    <div class="card blue"><div class="card-label">QTD Avg BSC</div><div class="card-value">${fmt1(avgQTD)}</div></div>
-    <div class="card ${avgD1BSC>=60?'green':'red'}"><div class="card-label">D-1 Avg BSC</div><div class="card-value">${hasD1&&avgD1BSC>0?fmt1(avgD1BSC):'No Data'}</div></div>
-    <div class="card"><div class="card-label">D-1 PAs with data</div><div class="card-value">${d1Data.filter(d=>d.bsc>0).length}</div></div>
-    <div class="card"><div class="card-label">PAs Shown</div><div class="card-value">${data.length}</div></div>`;
-
-  document.getElementById('d1-count').textContent=data.length+' PAs';
-  const tbody=document.getElementById('d1-tbody');
-  if(!data.length){tbody.innerHTML='<tr><td colspan="13" class="no-data">No data.</td></tr>';return;}
-
-  tbody.innerHTML=data.map(p=>{
-    const d=d1Map.get(p.name);
-    const hasd=d&&d.bsc>0;
-    const delta=hasd?d.bsc-p.bsc:null;
-    const dCol=delta===null?'var(--t3)':Math.abs(delta)<1?'var(--t3)':delta>0?'var(--gtext)':'var(--rtext)';
-    const cell=(v,fmt)=>v?`<td style="color:var(--gtext);font-weight:500">${fmt(v)}</td>`:`<td style="color:var(--t3)">—</td>`;
-    return`<tr>
-      <td><div class="pa-name">${p.name}</div></td>
-      <td><span class="apm-tag">${p.apm||'—'}</span></td>
-      <td style="font-weight:600;color:var(--blue)">${fmt1(p.bsc)}</td>
-      ${hasd?`<td style="font-weight:600;color:${d.bsc>=60?'var(--gtext)':'var(--rtext)'}">${fmt1(d.bsc)}</td>`:'<td style="color:var(--t3)">No data</td>'}
-      <td style="font-weight:600;color:${dCol}">${delta!==null?(delta>=0?'+':'')+fmt1(delta):'—'}</td>
-      <td class="metric-val">${fmt1(p.cc)}</td>${cell(d&&d.calls,v=>fmt1(v))}
-      <td class="metric-val">${Math.round(p.aht)}</td>${cell(d&&d.aht,v=>Math.round(v))}
-      <td class="metric-val">${(p.ttfa*100).toFixed(1)}%</td>${cell(d&&d.ttfa,v=>(v*100).toFixed(1)+'%')}
-      <td class="metric-val">${fmt1(p.ptt)}</td>${cell(d&&d.ptt,v=>fmt1(v))}
-    </tr>`;
-  }).join('');
-}
-
 // AT-RISK TRACKER
 function renderAtRisk(){
   const elapsed=parseInt(document.getElementById('ar-elapsed').value)||31;
@@ -881,18 +841,21 @@ function renderAtRisk(){
   const riskF=document.getElementById('ar-risk').value;
 
   let data=allPAs.map(p=>{
+    // Pace-based: project productive days at current rate to end of quarter
+    const prodRate=elapsed>0?p.prodDays/elapsed:0;
+    const projectedProdDays=prodRate*total;
+    const projectedProdPct=projectedProdDays/total;
+    const onTrackProd=projectedProdPct>=minProd;
     const daysNeeded=Math.max(0,prodNeed-p.prodDays);
-    const prodOK=p.prodDays>=prodNeed;
-    const prodAtRisk=!prodOK&&daysNeeded<=remaining;
-    const prodImpossible=!prodOK&&daysNeeded>remaining;
     const bscOK=p.bsc>=minBSCVal;
     const bscGap=Math.max(0,minBSCVal-p.bsc);
     const weakest=getWeakestMetric(p);
     let riskLevel='ok';
-    if((prodImpossible||(!prodOK&&!bscOK))||(!bscOK&&!prodOK))riskLevel='double';
-    else if(!prodOK||prodAtRisk)riskLevel='prod';
+    if(!onTrackProd&&!bscOK)riskLevel='double';
+    else if(!onTrackProd)riskLevel='prod';
     else if(!bscOK)riskLevel='bsc';
-    return{...p,daysNeeded,prodOK,prodAtRisk,prodImpossible,bscOK,bscGap,weakest,riskLevel,remaining};
+    else riskLevel='ok';
+    return{...p,daysNeeded,onTrackProd,projectedProdPct,projectedProdDays:Math.round(projectedProdDays),bscOK,bscGap,weakest,riskLevel,remaining};
   });
 
   if(apmF.length)data=data.filter(p=>apmF.includes(p.apm));
@@ -915,16 +878,20 @@ function renderAtRisk(){
     const rcls=p.riskLevel==='double'?'high':p.riskLevel==='prod'||p.riskLevel==='bsc'?'med':'low';
     let detail='',action='';
     if(p.riskLevel==='double'){
-      detail=`Both gates at risk. Productive days: ${p.prodDays}/${prodNeed} needed (${p.daysNeeded} more in ${remaining} days). BSC: ${fmt1(p.bsc)}/60 (gap: ${fmt1(p.bscGap)}).`;
-      action=`Priority: ${p.daysNeeded>p.remaining?'Productive days gate cannot be met in remaining time.':'Hit productive days first.'} Improve ${p.weakest.label} for BSC.`;
+      const dNeed=Math.max(0,prodNeed-p.prodDays);
+      detail=`Both gates at risk. Needs ${dNeed} more productive days in ${remaining} remaining (currently ${p.prodDays}/${prodNeed} required). BSC: ${fmt1(p.bsc)}/60 (gap: ${fmt1(p.bscGap)}).`;
+      action=`Must hit ≥20 dials on ${dNeed} of the next ${remaining} days AND improve ${p.weakest.label} for BSC.`;
     }else if(p.riskLevel==='prod'){
-      detail=`Productive days: ${p.prodDays}/${prodNeed} needed. Needs ${p.daysNeeded} more productive days in ${remaining} remaining days.`;
-      action=p.prodImpossible?'⚠ Cannot meet productive days gate even if all remaining days are productive.':'Must make '+p.daysNeeded+' of the next '+remaining+' days productive (≥20 dials each).';
+      const dNeed=Math.max(0,prodNeed-p.prodDays);
+      detail=`Productive days at risk. Needs ${dNeed} more productive days in ${remaining} remaining working days (currently ${p.prodDays}/${prodNeed} required). BSC: ${fmt1(p.bsc)} ✓`;
+      action=dNeed>remaining?'⚠ Cannot reach gate even if all remaining days are productive.':'Must achieve ≥20 dials on at least '+dNeed+' of the next '+remaining+' working days.';
     }else if(p.riskLevel==='bsc'){
-      detail=`BSC Score: ${fmt1(p.bsc)}/60 (gap: ${fmt1(p.bscGap)} points). Productive days: ✓`;
+      const dNeed=Math.max(0,prodNeed-p.prodDays);
+      detail=`BSC Score: ${fmt1(p.bsc)}/60 (gap: ${fmt1(p.bscGap)} pts). Productive days: needs ${dNeed} more in ${remaining} remaining — on track ✓`;
       action=`Focus on ${p.weakest.label}. Currently at ${p.weakest.actual} vs target ${p.weakest.target}.`;
     }else{
-      detail=`Productive days: ${p.prodDays}/${prodNeed} ✓ · BSC: ${fmt1(p.bsc)} ✓ · Rank: ${p.rank} · Incentive: ${p.incentive>0?fmtINR(p.incentive):'₹0'}`;
+      const dNeed=Math.max(0,prodNeed-p.prodDays);
+      detail=`On track. Needs ${dNeed} more productive days in ${remaining} remaining. BSC: ${fmt1(p.bsc)} ✓ · Rank: ${p.rank} · Incentive: ${p.incentive>0?fmtINR(p.incentive):'₹0'}`;
       action='';
     }
     return`<div class="risk-card">
@@ -1013,21 +980,41 @@ function rankEntities(list){
 }
 
 function renderTLView(){
-  const selTL=getSelectedMS('ms-tl-sel');
+  renderAPMTLMap();
+  const selTL =getSelectedMS('ms-tl-sel');
   const selAPM=getSelectedMS('ms-apm-sel');
+
+  // ── Filter TL cards (from TL sheet) ────────────────────────────
   const filteredTL=selTL.length?tlData.filter(t=>selTL.includes(t.name)):tlData;
-  const filteredAPM=selAPM.length?apmData.filter(a=>selAPM.includes(a.name)):apmData;
+
+  // ── Derive APM performance from allPAs (avoids name mismatch) ──
+  // Step 1: which PAs to include (filter by selected TL if any)
+  const paForAPM=selTL.length?allPAs.filter(p=>selTL.includes(p.tl)):allPAs;
+  // Step 2: group by APM and compute averages
+  const apmGroups={};
+  paForAPM.forEach(p=>{
+    if(!p.apm)return;
+    if(!apmGroups[p.apm])apmGroups[p.apm]={name:p.apm,paCnt:0,cc:0,aht:0,ttfa:0,ptt:0,bsc:0};
+    const g=apmGroups[p.apm];
+    g.paCnt++;g.cc+=p.cc;g.aht+=p.aht;g.ttfa+=p.ttfa;g.ptt+=p.ptt;g.bsc+=p.bsc;
+  });
+  let derivedAPM=Object.values(apmGroups).map(g=>({
+    ...g,cc:g.cc/g.paCnt,aht:g.aht/g.paCnt,ttfa:g.ttfa/g.paCnt,ptt:g.ptt/g.paCnt,bsc:g.bsc/g.paCnt
+  }));
+  // Step 3: apply APM multi-select filter
+  if(selAPM.length) derivedAPM=derivedAPM.filter(a=>selAPM.includes(a.name));
+
   const rankedTL=rankEntities(filteredTL);
-  const rankedAPM=rankEntities(filteredAPM);
+  const rankedAPM=rankEntities(derivedAPM);
 
   const overallBSC=tlData.length?tlData.reduce((s,t)=>s+t.bsc,0)/tlData.length:0;
   document.getElementById('tl-summary-cards').innerHTML=`
     <div class="card"><div class="card-label">Total TLs</div><div class="card-value">${tlData.length}</div></div>
     <div class="card blue"><div class="card-label">Avg TL BSC</div><div class="card-value">${fmt1(overallBSC)}</div></div>
-    <div class="card"><div class="card-label">Total APMs</div><div class="card-value">${apmData.length}</div></div>`;
+    <div class="card"><div class="card-label">Total APMs</div><div class="card-value">${[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].length}</div></div>`;
 
   function renderEntityCards(list,containerId){
-    if(!list.length){document.getElementById(containerId).innerHTML='<div class="no-data">No data found.</div>';return;}
+    if(!list.length){document.getElementById(containerId).innerHTML='<div class="no-data">No data found for this selection.</div>';return;}
     document.getElementById(containerId).innerHTML=list.map(e=>{
       const contribs=METRICS.map(m=>({...m,curr:Math.min(e[m.key]/m.target,1),actual:e[m.key]}));
       const weakest=contribs.filter(m=>m.curr<1).sort((a,b)=>a.curr-b.curr)[0];
@@ -1046,11 +1033,11 @@ function renderTLView(){
             return`<div class="tl-metric">
               <div class="tl-metric-name">${m.label}</div>
               <div class="tl-metric-val" style="color:${col}">${m.fmt(m.actual)}</div>
-              <div class="tl-metric-pct" style="color:${col}">${(m.curr*100).toFixed(0)}% of target</div>
+              <div class="tl-metric-pct" style="color:${col}">${pct.toFixed(0)}% of target</div>
             </div>`;
           }).join('')}
         </div>
-        ${weakest&&above?`<div class="tl-advice">→ To beat Rank ${e.rank-1} (${above.name}, BSC ${fmt1(above.bsc)}): focus on <strong>${weakest.label}</strong> — at ${weakest.fmt(weakest.actual)} vs target ${weakest.target}${weakest.key==='ttfa'?'%':''}. Gap: +${fmt1(above.bsc-e.bsc)} BSC pts.</div>`:''}
+        ${weakest&&above?`<div class="tl-advice">→ To beat Rank ${e.rank-1} (${above.name}, BSC ${fmt1(above.bsc)}): focus on <strong>${weakest.label}</strong> — currently ${weakest.fmt(weakest.actual)} vs target ${weakest.key==='ttfa'?'95%':weakest.target}. Gap: +${fmt1(above.bsc-e.bsc)} BSC pts.</div>`:''}
       </div>`;
     }).join('');
   }
@@ -1060,7 +1047,7 @@ function renderTLView(){
 
 // ── MULTI-SELECT FUNCTIONS ─────────────────────────────────────────
 function getRefreshFn(id){
-  const map={'ms-f-apm':'renderIncentiveTable()','ms-t7-apm':'renderTrend()','ms-d1-apm':'renderD1()','ms-ar-apm':'renderAtRisk()'};
+  const map={'ms-f-apm':'renderIncentiveTable()','ms-t7-apm':'renderTrend()','ms-ar-apm':'renderAtRisk()','ms-sum-apm':'renderSummary()','ms-sum-tl':'renderSummary()','ms-apm-sel':'renderTLView()','ms-tl-sel':'renderTLView()','ms-ir-tl':'renderIncentiveTable()'};
   return map[id]||'';
 }
 
@@ -1084,6 +1071,8 @@ function toggleMS(e,id){
 function msToggleAll(id,cb){
   document.querySelectorAll('#'+id+'-list input[type=checkbox]').forEach(c=>c.checked=cb.checked);
   msUpdateTrigger(id);
+  const fn=getRefreshFn(id);
+  if(fn){try{eval(fn);}catch(e){}}
 }
 
 function msItemChange(id){
@@ -1184,6 +1173,7 @@ function rowBg(p){
 // ── FILTER HELPERS ────────────────────────────────────────────────
 function getCurrentPAFilters(){
   return{
+    tls:  getSelectedMS('ms-ir-tl'),
     apms: getSelectedMS('ms-f-apm'),
     eligF: document.getElementById('f-elig').value,
     search: document.getElementById('f-search').value.toLowerCase().trim()
@@ -1197,7 +1187,8 @@ function getCurrentTLFilters(){
 }
 function getFilteredPAs(f){
   let data=[...allPAs];
-  if(f.apms&&f.apms.length) data=data.filter(p=>f.apms.includes(p.apm));
+  if(f.tls&&f.tls.length)   data=data.filter(p=>f.tls.includes(p.tl));
+  if(f.apms&&f.apms.length)  data=data.filter(p=>f.apms.includes(p.apm));
   if(f.eligF==='yes') data=data.filter(p=>p.eligible);
   if(f.eligF==='no')  data=data.filter(p=>!p.eligible);
   if(f.search) data=data.filter(p=>p.name.toLowerCase().includes(f.search));
@@ -1227,22 +1218,22 @@ function buildPAHtml(filters){
     pas.forEach((p,i)=>{
       const c=rowBg(p);
       const ccPct=Math.min(p.cc/21,1);const ahtPct=Math.min(p.aht/780,1);const ttfaPct=Math.min(p.ttfa/0.95,1);const pttPct=Math.min(p.ptt/145,1);
-      rows+=`<tr style="background:${c.bg};color:${c.fg}">
-        <td style="text-align:center;font-weight:600">${i+1}</td>
-        <td style="font-style:italic;font-weight:700">${p.name}</td>
-        <td style="text-align:center">${p.prodDays}</td>
-        <td style="text-align:center">${fmt1(p.cc)}</td>
-        <td style="text-align:center">${(ccPct*100).toFixed(0)}%</td>
-        <td style="text-align:center">${Math.round(p.aht)}</td>
-        <td style="text-align:center">${(ahtPct*100).toFixed(0)}%</td>
-        <td style="text-align:center">${(p.ttfa*100).toFixed(0)}%</td>
-        <td style="text-align:center">${(ttfaPct*100).toFixed(0)}%</td>
-        <td style="text-align:center">${fmt1(p.ptt)}</td>
-        <td style="text-align:center">${(pttPct*100).toFixed(0)}%</td>
-        <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
-        <td style="text-align:center">${p.callsTB>0?Math.round(p.callsTB):''}</td>
-        <td style="text-align:center;font-weight:700">${p.rank}</td>
-        <td style="text-align:center;font-weight:700">${p.incentive>0?'₹'+p.incentive.toLocaleString('en-IN'):'₹ 0'}</td>
+      rows+=`<tr style="background:${c.bg};color:#000">
+        <td style="text-align:center;font-weight:600;color:#000">${i+1}</td>
+        <td style="font-style:italic;font-weight:700;color:#000">${p.name}</td>
+        <td style="text-align:center;color:#000">${p.prodDays}</td>
+        <td style="text-align:center;color:#000">${Math.round(p.cc)}</td>
+        <td style="text-align:center;color:#000">${Math.round(ccPct*100)}%</td>
+        <td style="text-align:center;color:#000">${Math.round(p.aht)}</td>
+        <td style="text-align:center;color:#000">${Math.round(ahtPct*100)}%</td>
+        <td style="text-align:center;color:#000">${Math.round(p.ttfa*100)}%</td>
+        <td style="text-align:center;color:#000">${Math.round(ttfaPct*100)}%</td>
+        <td style="text-align:center;color:#000">${Math.round(p.ptt)}</td>
+        <td style="text-align:center;color:#000">${Math.round(pttPct*100)}%</td>
+        <td style="text-align:center;font-weight:700;color:#000">${Math.round(p.bsc*100)/100}</td>
+        <td style="text-align:center;color:#000">${p.callsTB>0?Math.round(p.callsTB):''}</td>
+        <td style="text-align:center;font-weight:700;color:#000">${p.rank}</td>
+        <td style="text-align:center;font-weight:700;color:#000">${p.incentive>0?'INR '+p.incentive.toLocaleString('en-IN'):'INR 0'}</td>
       </tr>`;
     });
     rows+=`<tr style="background:#E8F4EF"><td colspan="12" style="text-align:right;font-weight:600;padding:5px 10px">APM Total Payout →</td><td colspan="3" style="font-weight:700;color:#0D6E4A;padding:5px 10px">₹${payout.toLocaleString('en-IN')}</td></tr>`;
@@ -1254,7 +1245,7 @@ function buildPAHtml(filters){
     f.search?'Search: "'+f.search+'"':''
   ].filter(Boolean).join(' · ');
   return`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #C0C0C0;padding:5px 8px;white-space:nowrap}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.grp-hdr{background:#1F4E78;color:white;font-weight:700;font-size:10pt;text-align:center;padding:4px 6px}</style></head><body>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.grp-hdr{background:#1F4E78;color:white;font-weight:700;font-size:10pt;text-align:center;padding:4px 6px}</style></head><body>
   <h2 style="color:#0D6E4A;margin-bottom:4px">BSC Incentive Report — FY26 Q4</h2>
   <p style="color:#666;font-size:10pt;margin-bottom:4px">${refreshTxt} &nbsp;|&nbsp; ${filteredPAs.length} PAs &nbsp;|&nbsp; Gating: ≥75% Productive Days & BSC ≥60 &nbsp;|&nbsp; Total Working Days: ${totalDays}</p>
   ${filterNote?`<p style="color:#0D6E4A;font-size:10pt;margin-bottom:10px">Filters: ${filterNote}</p>`:''}
@@ -1347,9 +1338,9 @@ function buildTLHtml(filters){
     f.apms&&f.apms.length?'APMs: '+f.apms.join(', '):''
   ].filter(Boolean).join(' · ');
   return`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #C0C0C0;padding:5px 8px;white-space:nowrap}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}tr:nth-child(even){background:#F5F5F0}</style>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}tr:nth-child(even){background:#F5F5F0}</style>
   </head><body>
-  <h2 style="color:#0D6E4A;margin-bottom:4px">TL / APM Performance — BSC Incentive Dashboard</h2>
+  <h2 style="color:#0D6E4A;margin-bottom:4px">TL / APM Performance — Emeritus Performance Hub</h2>
   <p style="color:#666;font-size:10pt;margin-bottom:4px">${refreshTxt}</p>
   ${filterNote?`<p style="color:#0D6E4A;font-size:10pt;margin-bottom:10px">Filters: ${filterNote}</p>`:''}
   ${section(filtTL,'Team Lead (TL) Rankings')}
@@ -1451,39 +1442,71 @@ function buildBSCOnlyHtml(apmF,search){
     const pas=data.filter(p=>p.apm===apm).sort((a,b)=>a.bscRank-b.bscRank);
     if(!pas.length)return;
     const totalTent=pas.reduce((s,p)=>s+p.tentative,0);
-    rows+=`<tr><td colspan="11" style="background:#0D6E4A;color:white;font-weight:700;font-size:13px;padding:7px 10px">APM: ${apm} &nbsp;|&nbsp; ${pas.length} PAs &nbsp;|&nbsp; Tentative Payout: ₹${totalTent.toLocaleString('en-IN')}</td></tr>`;
+    rows+=`<tr><td colspan="14" style="background:#0D6E4A;color:white;font-weight:700;font-size:12px;padding:6px 10px">APM: ${apm} &nbsp;|&nbsp; ${pas.length} PAs &nbsp;|&nbsp; Tentative Payout: ₹${totalTent.toLocaleString('en-IN')}</td></tr>`;
     pas.forEach((p,i)=>{
-      const c=rowBg(p);const gateOK=p.prodElig&&p.bscElig;
+      const c=rowBg(p);
+      const ccPct=Math.min(p.cc/21,1);const ahtPct=Math.min(p.aht/780,1);
+      const ttfaPct=Math.min(p.ttfa/0.95,1);const pttPct=Math.min(p.ptt/145,1);
       rows+=`<tr style="background:${c.bg};color:${c.fg}">
-        <td style="text-align:center">${i+1}</td>
-        <td style="font-weight:700">${p.name}</td>
+        <td style="text-align:center;font-style:italic;font-weight:700">${p.name}</td>
         <td style="text-align:center">${p.prodDays}</td>
-        <td style="text-align:center">${(p.prodPct*100).toFixed(1)}%</td>
+        <td style="text-align:center">${fmt1(p.cc)}</td>
+        <td style="text-align:center">${(ccPct*100).toFixed(0)}%</td>
+        <td style="text-align:center">${Math.round(p.aht)}</td>
+        <td style="text-align:center">${(ahtPct*100).toFixed(0)}%</td>
+        <td style="text-align:center">${(p.ttfa*100).toFixed(0)}%</td>
+        <td style="text-align:center">${(ttfaPct*100).toFixed(0)}%</td>
+        <td style="text-align:center">${fmt1(p.ptt)}</td>
+        <td style="text-align:center">${(pttPct*100).toFixed(0)}%</td>
         <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
+        <td style="text-align:center">${p.callsTB>0?Math.round(p.callsTB):''}</td>
         <td style="text-align:center;font-weight:700">${p.bscRank}</td>
-        <td style="text-align:center;font-weight:700">${p.tentative>0?'₹'+p.tentative.toLocaleString('en-IN'):'₹0'}</td>
-        <td style="text-align:center">${p.actual>0?'₹'+p.actual.toLocaleString('en-IN'):'₹0'}</td>
-        <td style="text-align:center;font-weight:600;color:${p.diff>0?'#1F4E00':p.diff<0?'#7B0000':'#888'}">${p.diff>0?'+':''} ${Math.abs(p.diff)>0?'₹'+Math.abs(p.diff).toLocaleString('en-IN'):'—'}</td>
-        <td style="text-align:center">${gateOK?'✓ Both Gates':`✗ ${!p.prodElig?'Prod. Days Risk':!p.bscElig?'BSC Risk':''}`}</td>
+        <td style="text-align:center;font-weight:700">${p.tentative>0?'₹'+p.tentative.toLocaleString('en-IN'):'₹ 0'}</td>
       </tr>`;
     });
-    rows+=`<tr><td colspan="11" style="height:5px;background:#fff"></td></tr>`;
+    rows+=`<tr style="background:#E8F4EF"><td colspan="11" style="text-align:right;font-weight:600;padding:5px 10px">APM Tentative Total →</td><td colspan="3" style="font-weight:700;color:#0D6E4A;padding:5px 10px">₹${totalTent.toLocaleString('en-IN')}</td></tr>`;
+    rows+=`<tr><td colspan="14" style="height:6px"></td></tr>`;
   });
   const filterNote=apmF&&apmF.length?'APMs: '+apmF.join(', '):'';
   return`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #C0C0C0;padding:5px 8px;white-space:nowrap}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}</style>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.gh{background:#1F4E78;color:white;font-weight:700;text-align:center;padding:4px 6px}</style>
   </head><body>
-  <h2 style="color:#0D6E4A;margin-bottom:4px">Tentative Incentives — BSC Rank Only — FY26 Q4</h2>
-  <p style="color:#888;font-size:10pt;margin-bottom:4px">${refreshTxt} | Productive days gating NOT applied | Total Working Days: ${totalDays}</p>
-  ${filterNote?`<p style="color:#0D6E4A;font-size:10pt;margin-bottom:8px">Filters: ${filterNote}</p>`:''}
-  <table><thead><tr>
-    <th>S.No</th><th>PA Name</th><th>Prod. Days</th><th>Prod. %</th>
-    <th>BSC Score</th><th>BSC Rank</th><th>Tentative (₹)</th><th>Actual (₹)</th><th>Difference</th><th>Gate Status</th>
-  </tr></thead><tbody>${rows}</tbody></table>
-  <p style="margin-top:10px;font-size:9pt;color:#888">
-    <span style="background:#92D050;padding:2px 8px;border:1px solid #ccc">BSC 71–100</span>&nbsp;
-    <span style="background:#FFFF99;padding:2px 8px;border:1px solid #ccc">BSC 61–70</span>&nbsp;
-    <span style="background:#FFCCCC;padding:2px 8px;border:1px solid #ccc">BSC 0–60</span>
+  <h2 style="color:#0D6E4A;margin-bottom:4px">Tentative Incentives — BSC Only (No Productive Days Gate) — FY26 Q4</h2>
+  <p style="color:#888;font-size:9pt;margin-bottom:4px">${refreshTxt} &nbsp;|&nbsp; ${data.length} PAs &nbsp;|&nbsp; Gating: BSC rank only</p>
+  ${filterNote?`<p style="color:#0D6E4A;font-size:9pt;margin-bottom:8px">Filters: ${filterNote}</p>`:''}
+  <table>
+    <thead>
+      <tr>
+        <th rowspan="3">PA</th>
+        <th rowspan="3"># Productive Days</th>
+        <th colspan="2">Connected Calls</th>
+        <th colspan="2">First Connected Call AHT</th>
+        <th colspan="2">Adjusted TTFA</th>
+        <th colspan="2">Pure Talk Time</th>
+        <th rowspan="3">Balance Scorecard</th>
+        <th rowspan="3">Calls</th>
+        <th rowspan="3">RANK</th>
+        <th rowspan="3">AMOUNT</th>
+      </tr>
+      <tr>
+        <th class="gh">Target</th><th class="gh">21</th>
+        <th class="gh">Target</th><th class="gh">780</th>
+        <th class="gh">Target</th><th class="gh">95%</th>
+        <th class="gh">Target</th><th class="gh">145</th>
+      </tr>
+      <tr>
+        <th class="gh">Actuals</th><th class="gh">% Ach</th>
+        <th class="gh">Actuals</th><th class="gh">% Ach</th>
+        <th class="gh">Actuals</th><th class="gh">% Ach</th>
+        <th class="gh">Actuals</th><th class="gh">% Ach</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <p style="margin-top:8px;font-size:9pt;color:#888">
+    <span style="background:#92D050;padding:2px 8px;border:1px solid #ccc">BSC 71–100 (Green)</span>&nbsp;
+    <span style="background:#FFFF99;padding:2px 8px;border:1px solid #ccc">BSC 61–70 (Yellow)</span>&nbsp;
+    <span style="background:#FFCCCC;padding:2px 8px;border:1px solid #ccc">BSC 0–60 (Red)</span>
   </p></body></html>`;
 }
 
@@ -1509,83 +1532,108 @@ function exportBSCOnlyPDF(){
 // ── TAB 8: INCENTIVE SUMMARY ───────────────────────────────────────
 function renderSummary(){
   if(!allPAs.length)return;
-  const total=allPAs.length;
-  const elig=allPAs.filter(p=>p.eligible);
-  const ne=allPAs.filter(p=>!p.eligible);
+  const sumTLF=getSelectedMS('ms-sum-tl');
+  const sumApmF=getSelectedMS('ms-sum-apm');
+  // TL cascade: if TL selected, restrict to those TLs
+  let paSubset=allPAs;
+  if(sumTLF.length) paSubset=paSubset.filter(p=>sumTLF.includes(p.tl));
+  if(sumApmF.length) paSubset=paSubset.filter(p=>sumApmF.includes(p.apm));
+  const totalDays=parseInt(document.getElementById('s-days').value)||58;
+  const total=paSubset.length;
+  const elig=paSubset.filter(p=>p.eligible);
   const payout=elig.reduce((s,p)=>s+p.incentive,0);
   const avgInc=elig.length?payout/elig.length:0;
   const topBSC=Math.max(...allPAs.map(p=>p.bsc));
   const minBSCElig=elig.length?Math.min(...elig.map(p=>p.bsc)):0;
-  const avgBSC=allPAs.reduce((s,p)=>s+p.bsc,0)/total;
-
-  document.getElementById('sum-cards').innerHTML=`
-    <div class="card"><div class="card-label">Total PAs</div><div class="card-value">${total}</div></div>
-    <div class="card green"><div class="card-label">✓ Eligible</div><div class="card-value">${elig.length}</div><div class="card-sub">${Math.round(elig.length/total*100)}% of team</div></div>
-    <div class="card red"><div class="card-label">✗ Not Eligible</div><div class="card-value">${ne.length}</div></div>
-    <div class="card gold"><div class="card-label">Total Payout</div><div class="card-value">${fmtINR(payout)}</div></div>
-    <div class="card"><div class="card-label">Avg Incentive (Eligible)</div><div class="card-value">${elig.length?fmtINR(avgInc):'—'}</div></div>
-    <div class="card blue"><div class="card-label">Highest BSC</div><div class="card-value">${fmt1(topBSC)}</div></div>
-    <div class="card"><div class="card-label">Min BSC (Eligible)</div><div class="card-value">${elig.length?fmt1(minBSCElig):'—'}</div></div>
-    <div class="card"><div class="card-label">Team Avg BSC</div><div class="card-value">${fmt1(avgBSC)}</div></div>`;
-
-  // Slab distribution
+  const eligPct=Math.round(elig.length/total*100);
+  const r1=document.getElementById('sum-cards-row1');
+  const r2=document.getElementById('sum-cards-row2');
+  if(!r1||!r2)return;
+  r1.innerHTML=`
+    <div class="card"><div class="card-label">👥 Total PAs</div><div class="card-value">${total}</div></div>
+    <div class="card green"><div class="card-label">✅ Eligible PAs</div><div class="card-value">${elig.length}</div></div>
+    <div class="card red"><div class="card-label">❌ Not Eligible</div><div class="card-value">${total-elig.length}</div></div>
+    <div class="card blue"><div class="card-label">📊 Eligibility %</div><div class="card-value">${eligPct}%</div></div>`;
+  r2.innerHTML=`
+    <div class="card gold"><div class="card-label">💰 Total Payout (INR)</div><div class="card-value">${fmtINR(payout)}</div></div>
+    <div class="card"><div class="card-label">📈 Avg Incentive (Eligible)</div><div class="card-value">${elig.length?fmtINR(avgInc):'—'}</div></div>
+    <div class="card"><div class="card-label">🥇 Highest BSC Score</div><div class="card-value">${fmt1(topBSC)}</div></div>
+    <div class="card"><div class="card-label">📉 Min BSC (Eligible)</div><div class="card-value">${elig.length?fmt1(minBSCElig):'—'}</div></div>`;
   const totalPay=payout||1;
-  document.getElementById('sum-slab-tbody').innerHTML=SLABS.filter(s=>s.to!==Infinity).concat([{from:78,to:Infinity,amount:0}]).map((s,i)=>{
+  document.getElementById('sum-slab-tbody').innerHTML=SLABS.map((s,i)=>{
     const label=s.to===Infinity?'78+':s.from+' – '+s.to;
     const inSlab=elig.filter(p=>p.rank>=s.from&&p.rank<=s.to);
     const slabPay=inSlab.reduce((t,p)=>t+p.incentive,0);
-    const pct=totalPay>0?(slabPay/totalPay*100).toFixed(1):'0.0';
+    const pct=payout>0?(slabPay/payout*100).toFixed(1):'0.0';
     const bg=i<2?'#E8F4EF':i<4?'#F5FAF0':i<7?'#FEFEF0':'#FFF5F5';
     return`<tr style="background:${bg}">
-      <td style="font-weight:600">Slab ${i+1}</td>
-      <td style="text-align:center">${label}</td>
+      <td style="font-weight:600">Slab ${i+1}</td><td style="text-align:center">${label}</td>
       <td style="text-align:center;font-weight:600">${s.amount>0?fmtINR(s.amount):'₹0'}</td>
       <td style="text-align:center;font-weight:600;color:${inSlab.length>0?'var(--gtext)':'var(--t3)'}">${inSlab.length}</td>
       <td style="text-align:center;font-weight:600">${slabPay>0?fmtINR(slabPay):'—'}</td>
-      <td style="text-align:center">${slabPay>0?pct+'%':'—'}</td>
-    </tr>`;
+      <td style="text-align:center">${slabPay>0?pct+'%':'—'}</td></tr>`;
   }).join('')+`<tr style="background:#E8F4EF;font-weight:700">
-    <td colspan="3">Total</td>
+    <td colspan="3" style="text-align:right;padding-right:12px">TOTAL</td>
     <td style="text-align:center">${elig.length}</td>
     <td style="text-align:center">${fmtINR(payout)}</td>
-    <td style="text-align:center">100%</td>
-  </tr>`;
-
-  // APM summary
-  const apms=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
-  document.getElementById('sum-apm-tbody').innerHTML=apms.map(apm=>{
-    const pas=allPAs.filter(p=>p.apm===apm);
-    const e=pas.filter(p=>p.eligible);
-    const ep=e.length?e.reduce((s,p)=>s+p.incentive,0):0;
-    const avgB=e.length?(e.reduce((s,p)=>s+p.bsc,0)/e.length).toFixed(1):'—';
-    const epct=pas.length?Math.round(e.length/pas.length*100):0;
-    return`<tr>
-      <td style="font-weight:600">${apm}</td>
-      <td style="text-align:center">${pas.length}</td>
-      <td style="text-align:center;color:var(--gtext);font-weight:600">${e.length}</td>
-      <td style="text-align:center;color:var(--rtext)">${pas.length-e.length}</td>
-      <td style="text-align:center">
-        <div style="display:flex;align-items:center;gap:6px">
+    <td style="text-align:center">100%</td></tr>`;
+  function groupTbody(keyFn,tbodyId){
+    const keys=[...new Set(paSubset.map(keyFn).filter(Boolean))].sort();
+    const totE=paSubset.filter(p=>p.eligible).length;
+    const totP=paSubset.reduce((s,p)=>s+p.incentive,0);
+    let html=keys.map(k=>{
+      const pas=allPAs.filter(p=>keyFn(p)===k);
+      const e=pas.filter(p=>p.eligible);
+      const ep=e.reduce((s,p)=>s+p.incentive,0);
+      const epct=pas.length?Math.round(e.length/pas.length*100):0;
+      return`<tr>
+        <td style="font-weight:600">${k}</td>
+        <td style="text-align:center">${pas.length}</td>
+        <td style="text-align:center;color:var(--gtext);font-weight:600">${e.length}</td>
+        <td style="text-align:center;color:var(--rtext)">${pas.length-e.length}</td>
+        <td style="text-align:center"><div style="display:flex;align-items:center;gap:6px">
           <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:${epct}%;height:100%;background:var(--brand-mid)"></div></div>
-          <span style="font-size:11px;font-weight:600">${epct}%</span>
-        </div>
-      </td>
-      <td style="text-align:center">${avgB}</td>
-      <td style="text-align:center;font-weight:700;color:var(--amber)">${ep>0?fmtINR(ep):'—'}</td>
-    </tr>`;
+          <span style="font-size:11px;font-weight:600;min-width:28px">${epct}%</span></div></td>
+        <td style="text-align:center;font-weight:700;color:var(--amber)">${ep>0?fmtINR(ep):'—'}</td></tr>`;
+    }).join('');
+    html+=`<tr style="background:#E8F4EF;font-weight:700">
+      <td>TOTAL</td><td style="text-align:center">${paSubset.length}</td>
+      <td style="text-align:center;color:var(--gtext)">${totE}</td>
+      <td style="text-align:center;color:var(--rtext)">${allPAs.length-totE}</td>
+      <td style="text-align:center">${eligPct}%</td>
+      <td style="text-align:center;color:var(--amber)">${totP>0?fmtINR(totP):'—'}</td></tr>`;
+    document.getElementById(tbodyId).innerHTML=html;
+  }
+  groupTbody(p=>p.apm,'sum-apm-tbody');
+  groupTbody(p=>p.tl,'sum-tl-tbody');
+  const sorted=[...paSubset].sort((a,b)=>a.rank-b.rank);
+  document.getElementById('sum-pa-tbody').innerHTML=sorted.map(p=>{
+    const c=rowBg(p);
+    return`<tr style="background:${c.bg};color:${c.fg}">
+      <td style="text-align:center;font-weight:700">${p.rank}</td>
+      <td style="font-weight:600">${p.name}</td>
+      <td>${p.apm||'—'}</td><td>${p.tl||'—'}</td>
+      <td style="text-align:center">${p.prodDays}</td>
+      <td style="text-align:center">${totalDays}</td>
+      <td style="text-align:center">${(p.prodPct*100).toFixed(1)}%</td>
+      <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
+      <td style="text-align:center">${p.prodElig?'✓ Yes':'✗ No'}</td>
+      <td style="text-align:center">${p.bscElig?'✓ Yes':'✗ No'}</td>
+      <td style="text-align:center;font-weight:600">${p.eligible?'✓ ELIGIBLE':'✗ NOT ELIGIBLE'}</td>
+      <td style="text-align:center;font-weight:700">${p.incentive>0?fmtINR(p.incentive):'₹0'}</td></tr>`;
   }).join('');
 }
 
 function buildSummaryHtml(){
   const refreshTxt=document.getElementById('refresh-time').textContent;
+  const totalDays=parseInt(document.getElementById('s-days').value)||58;
   const total=allPAs.length;
   const elig=allPAs.filter(p=>p.eligible);
   const payout=elig.reduce((s,p)=>s+p.incentive,0);
-  const avgInc=elig.length?payout/elig.length:0;
+  const avgInc=elig.length?Math.round(payout/elig.length):0;
   const topBSC=Math.max(...allPAs.map(p=>p.bsc));
   const minBSCElig=elig.length?Math.min(...elig.map(p=>p.bsc)):0;
-  const avgBSC=allPAs.reduce((s,p)=>s+p.bsc,0)/total;
-
+  const eligPct=Math.round(elig.length/total*100);
   const slabRows=SLABS.map((s,i)=>{
     const label=s.to===Infinity?'78+':s.from+' – '+s.to;
     const inSlab=elig.filter(p=>p.rank>=s.from&&p.rank<=s.to);
@@ -1596,46 +1644,68 @@ function buildSummaryHtml(){
       <td style="text-align:center">${inSlab.length}</td>
       <td style="text-align:center">${slabPay>0?'₹'+slabPay.toLocaleString('en-IN'):'—'}</td>
       <td style="text-align:center">${slabPay>0?pct+'%':'—'}</td></tr>`;
+  }).join('')+`<tr style="font-weight:700;background:#E8F4EF"><td colspan="3">TOTAL</td>
+    <td style="text-align:center">${elig.length}</td>
+    <td style="text-align:center">₹${payout.toLocaleString('en-IN')}</td>
+    <td style="text-align:center">100%</td></tr>`;
+  function groupRows(keyFn){
+    const keys=[...new Set(allPAs.map(keyFn).filter(Boolean))].sort();
+    return keys.map(k=>{
+      const pas=allPAs.filter(p=>keyFn(p)===k);
+      const e=pas.filter(p=>p.eligible);
+      const ep=e.reduce((s,p)=>s+p.incentive,0);
+      return`<tr><td style="font-weight:600">${k}</td>
+        <td style="text-align:center">${pas.length}</td><td style="text-align:center">${e.length}</td>
+        <td style="text-align:center">${pas.length-e.length}</td>
+        <td style="text-align:center">${pas.length?Math.round(e.length/pas.length*100)+'%':'—'}</td>
+        <td style="text-align:center;font-weight:700">${ep>0?'₹'+ep.toLocaleString('en-IN'):'—'}</td></tr>`;
+    }).join('')+`<tr style="font-weight:700;background:#E8F4EF"><td>TOTAL</td>
+      <td style="text-align:center">${allPAs.length}</td><td style="text-align:center">${elig.length}</td>
+      <td style="text-align:center">${allPAs.length-elig.length}</td>
+      <td style="text-align:center">${eligPct}%</td>
+      <td style="text-align:center">₹${payout.toLocaleString('en-IN')}</td></tr>`;
+  }
+  const paRows=[...allPAs].sort((a,b)=>a.rank-b.rank).map(p=>{
+    const c=rowBg(p);
+    return`<tr style="background:${c.bg};color:${c.fg}">
+      <td style="text-align:center;font-weight:700">${p.rank}</td><td style="font-weight:600">${p.name}</td>
+      <td>${p.apm||'—'}</td><td>${p.tl||'—'}</td>
+      <td style="text-align:center">${p.prodDays}</td><td style="text-align:center">${totalDays}</td>
+      <td style="text-align:center">${(p.prodPct*100).toFixed(1)}%</td>
+      <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
+      <td style="text-align:center">${p.prodElig?'✓ Yes':'✗ No'}</td>
+      <td style="text-align:center">${p.bscElig?'✓ Yes':'✗ No'}</td>
+      <td style="text-align:center">${p.eligible?'✓ ELIGIBLE':'✗ NOT ELIGIBLE'}</td>
+      <td style="text-align:center;font-weight:700">${p.incentive>0?'₹'+p.incentive.toLocaleString('en-IN'):'₹0'}</td></tr>`;
   }).join('');
-
-  const apms=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
-  const apmRows=apms.map(apm=>{
-    const pas=allPAs.filter(p=>p.apm===apm);
-    const e=pas.filter(p=>p.eligible);
-    const ep=e.reduce((s,p)=>s+p.incentive,0);
-    const avgB=e.length?(e.reduce((s,p)=>s+p.bsc,0)/e.length).toFixed(1):'—';
-    return`<tr><td style="font-weight:600">${apm}</td>
-      <td style="text-align:center">${pas.length}</td>
-      <td style="text-align:center">${e.length}</td>
-      <td style="text-align:center">${pas.length-e.length}</td>
-      <td style="text-align:center">${pas.length?Math.round(e.length/pas.length*100)+'%':'—'}</td>
-      <td style="text-align:center">${avgB}</td>
-      <td style="text-align:center;font-weight:700">${ep>0?'₹'+ep.toLocaleString('en-IN'):'—'}</td></tr>`;
-  }).join('');
-
   return`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%;margin-bottom:20px}th,td{border:1px solid #C0C0C0;padding:6px 10px}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.metric-box{display:inline-block;border:1px solid #C0C0C0;padding:8px 16px;margin:4px;min-width:140px;text-align:center}.metric-label{font-size:9pt;color:#888;display:block}.metric-val{font-size:14pt;font-weight:700;color:#0D6E4A}</style>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #999;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.mbox{display:inline-block;border:1px solid #C0C0C0;padding:7px 14px;margin:3px;min-width:130px;text-align:center}.ml{font-size:9pt;color:#888;display:block}.mv{font-size:13pt;font-weight:700;color:#0D6E4A}</style>
   </head><body>
-  <h2 style="color:#0D6E4A;margin-bottom:4px">Incentive Summary — FY26 Q4</h2>
-  <p style="color:#888;font-size:10pt;margin-bottom:12px">${refreshTxt}</p>
-  <div style="margin-bottom:16px">
-    <span class="metric-box"><span class="metric-label">Total PAs</span><span class="metric-val">${total}</span></span>
-    <span class="metric-box"><span class="metric-label">✓ Eligible</span><span class="metric-val" style="color:#0D6E4A">${elig.length}</span></span>
-    <span class="metric-box"><span class="metric-label">✗ Not Eligible</span><span class="metric-val" style="color:#C0392B">${total-elig.length}</span></span>
-    <span class="metric-box"><span class="metric-label">Eligibility %</span><span class="metric-val">${Math.round(elig.length/total*100)}%</span></span>
-    <span class="metric-box"><span class="metric-label">Total Payout</span><span class="metric-val" style="color:#B07800">₹${payout.toLocaleString('en-IN')}</span></span>
-    <span class="metric-box"><span class="metric-label">Avg Incentive</span><span class="metric-val">${elig.length?'₹'+Math.round(avgInc).toLocaleString('en-IN'):'—'}</span></span>
-    <span class="metric-box"><span class="metric-label">Highest BSC</span><span class="metric-val">${fmt1(topBSC)}</span></span>
-    <span class="metric-box"><span class="metric-label">Min BSC (Eligible)</span><span class="metric-val">${elig.length?fmt1(minBSCElig):'—'}</span></span>
-    <span class="metric-box"><span class="metric-label">Team Avg BSC</span><span class="metric-val">${fmt1(avgBSC)}</span></span>
+  <h2 style="color:#0D6E4A;margin-bottom:2px">🏆 Incentive Summary — FY26 Q4</h2>
+  <p style="color:#888;font-size:9pt;margin-bottom:8px">${refreshTxt}</p>
+  <div style="margin-bottom:12px">
+    <span class="mbox"><span class="ml">👥 Total PAs</span><span class="mv">${total}</span></span>
+    <span class="mbox"><span class="ml">✅ Eligible</span><span class="mv" style="color:#0D6E4A">${elig.length}</span></span>
+    <span class="mbox"><span class="ml">❌ Not Eligible</span><span class="mv" style="color:#C0392B">${total-elig.length}</span></span>
+    <span class="mbox"><span class="ml">📊 Eligibility %</span><span class="mv">${eligPct}%</span></span>
+    <span class="mbox"><span class="ml">💰 Total Payout</span><span class="mv" style="color:#B07800">₹${payout.toLocaleString('en-IN')}</span></span>
+    <span class="mbox"><span class="ml">📈 Avg Incentive</span><span class="mv">${elig.length?'₹'+avgInc.toLocaleString('en-IN'):'—'}</span></span>
+    <span class="mbox"><span class="ml">🥇 Highest BSC</span><span class="mv">${fmt1(topBSC)}</span></span>
+    <span class="mbox"><span class="ml">📉 Min BSC (Elig.)</span><span class="mv">${elig.length?fmt1(minBSCElig):'—'}</span></span>
   </div>
-  <h3 style="color:#0D6E4A;margin-bottom:6px">Incentive Slab Distribution</h3>
-  <table><thead><tr><th>Slab</th><th>Rank Range</th><th>Amount (INR)</th><th># Eligible PAs</th><th>Total Payout (INR)</th><th>% of Total Payout</th></tr></thead>
-  <tbody>${slabRows}<tr style="font-weight:700;background:#E8F4EF"><td colspan="3">Total</td><td style="text-align:center">${elig.length}</td><td style="text-align:center">₹${payout.toLocaleString('en-IN')}</td><td style="text-align:center">100%</td></tr></tbody></table>
-  <h3 style="color:#0D6E4A;margin-bottom:6px">APM-wise Incentive Summary</h3>
-  <table><thead><tr><th>APM Name</th><th>Total PAs</th><th>✓ Eligible</th><th>✗ Not Eligible</th><th>Eligibility %</th><th>Avg BSC (Eligible)</th><th>Total Payout (INR)</th></tr></thead>
-  <tbody>${apmRows}</tbody></table>
-  </body></html>`;
+  <h3 style="color:#0D6E4A;margin-bottom:4px">📋 Incentive Slab Distribution</h3>
+  <table><thead><tr><th>Slab</th><th>Rank Range</th><th>Amount (INR)</th><th># Eligible PAs</th><th>Total Payout (INR)</th><th>% of Total Payout</th></tr></thead><tbody>${slabRows}</tbody></table>
+  <h3 style="color:#0D6E4A;margin-bottom:4px">👤 APM-wise Incentive Summary</h3>
+  <table><thead><tr><th>APM Name</th><th>Total PAs</th><th>✓ Eligible</th><th>✗ Not Eligible</th><th>Eligibility %</th><th>Total Payout (INR)</th></tr></thead><tbody>${groupRows(p=>p.apm)}</tbody></table>
+  <h3 style="color:#0D6E4A;margin-bottom:4px">🏢 TL-wise Incentive Summary</h3>
+  <table><thead><tr><th>TL Name</th><th>Total PAs</th><th>✓ Eligible</th><th>✗ Not Eligible</th><th>Eligibility %</th><th>Total Payout (INR)</th></tr></thead><tbody>${groupRows(p=>p.tl)}</tbody></table>
+  <h3 style="color:#0D6E4A;margin-bottom:4px">📄 Full PA Incentive Detail</h3>
+  <table><thead><tr><th>BSC Rank</th><th>PA Name</th><th>APM</th><th>TL</th><th>Prod Days</th><th>Total WD</th><th>Prod %</th><th>BSC Score</th><th>Prod Days Eligible?</th><th>BSC Eligible?</th><th>Incentive Eligible?</th><th>Incentive Amount (INR)</th></tr></thead><tbody>${paRows}</tbody></table>
+  <p style="font-size:9pt;color:#888">
+    <span style="background:#92D050;padding:2px 6px;border:1px solid #ccc">BSC 71–100 (Green)</span>&nbsp;
+    <span style="background:#FFFF99;padding:2px 6px;border:1px solid #ccc">BSC 61–70 (Yellow)</span>&nbsp;
+    <span style="background:#FFCCCC;padding:2px 6px;border:1px solid #ccc">BSC 0–60 (Red)</span>
+  </p></body></html>`;
 }
 
 function copySummary(){
@@ -1650,12 +1720,223 @@ function exportSummaryExcel(){
 }
 function exportSummaryPDF(){
   if(!allPAs.length){alert('Upload a file first.');return;}
-  const html=buildSummaryHtml().replace('</head>','<style>@page{size:A4 portrait;margin:12mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>');
+  const html=buildSummaryHtml().replace('</head>','<style>@page{size:A4 portrait;margin:10mm}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head>');
   const w=window.open('','_blank');w.document.write(html);w.document.close();w.onload=()=>w.print();
 }
+// ── THREE COPY FUNCTIONS FOR INCENTIVE REPORT ─────────────────────
+function copyPAScreen(){
+  // Copy what's visible on screen as a plain HTML table
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const filters=getCurrentPAFilters();
+  const data=getFilteredPAs(filters);
+  const totalDays=parseInt(document.getElementById('s-days').value)||58;
+  const refreshTxt=document.getElementById('refresh-time').textContent;
+  const rows=data.map((p,i)=>{
+    const c=rowBg(p);const pp=(p.prodPct*100).toFixed(1);
+    return`<tr style="background:${c.bg};color:${c.fg}">
+      <td>${i+1}</td><td><b>${p.name}</b></td><td>${p.apm||'—'}</td>
+      <td>${p.prodDays}</td><td>${pp}%</td><td>${fmt1(p.bsc)}</td>
+      <td>${Math.round(p.cc)}</td><td>${Math.round(p.aht)}</td>
+      <td>${Math.round(p.ttfa*100)}%</td><td>${Math.round(p.ptt)}</td>
+      <td>${p.bscRank}</td>
+      <td>${p.prodElig?'✓':'✗'}</td><td>${p.bscElig?'✓':'✗'}</td>
+      <td>${p.eligible?'✓ ELIG':'✗ NOT'}</td>
+      <td>${p.incentive>0?fmtINR(p.incentive):'₹0'}</td>
+      <td>${p.tentative>0?fmtINR(p.tentative):'₹0'}</td>
+    </tr>`;
+  }).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;color:#000;white-space:nowrap}th{background:#0D6E4A;color:#fff;font-weight:700;text-align:center}</style>
+  </head><body><h3 style="color:#0D6E4A;margin-bottom:6px">PA Incentive Report — ${refreshTxt}</h3>
+  <table><thead><tr><th>S.No</th><th>PA Name</th><th>APM</th><th>Prod Days</th><th>Prod %</th><th>BSC</th><th>CC</th><th>AHT</th><th>TTFA</th><th>PTT</th><th>BSC Rank</th><th>Prod Elig?</th><th>BSC Elig?</th><th>Inc. Elig?</th><th>Actual (₹)</th><th>Tentative (₹)</th></tr></thead>
+  <tbody>${rows}</tbody></table></body></html>`;
+  copyHTML(html,`${data.length} PAs copied (screen view) — paste into Teams or Excel.`);
+}
+
+function copyPAExcelFmt(){
+  // Copy in the APM-wise merged-header Excel format
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const html=buildPAHtml(getCurrentPAFilters());
+  const count=getFilteredPAs(getCurrentPAFilters()).length;
+  copyHTML(html,`${count} PAs copied (Excel format) — paste into Teams or Excel.`);
+}
+
+function copyPATentative(){
+  if(!allPAs.length){alert('Upload a file first.');return;}
+  const filters=getCurrentPAFilters();
+  const allFiltered=getFilteredPAs(filters);
+  const data=[...allFiltered].sort((a,b)=>a.bscRank-b.bscRank);
+  const refreshTxt=document.getElementById('refresh-time').textContent;
+  const grandTotal=data.reduce((s,p)=>s+p.tentative,0);
+  let rows=data.map(p=>{
+    const c=rowBg(p);
+    const ccAct=Math.round(p.cc);
+    const ccPct=Math.round(Math.min(p.cc/21,1)*100);
+    const ahtAct=Math.round(p.aht);
+    const ahtPct=Math.round(Math.min(p.aht/780,1)*100);
+    const ttfaAct=Math.round(p.ttfa*100);
+    const ttfaPct=Math.round(Math.min(p.ttfa/0.95,1)*100);
+    const pttAct=Math.round(p.ptt);
+    const pttPct=Math.round(Math.min(p.ptt/145,1)*100);
+    const bscRound=Math.round(p.bsc*100)/100;
+    return`<tr style="background:${c.bg}">
+      <td style="font-weight:700;font-style:italic;color:#000">${p.name}</td>
+      <td style="text-align:center;color:#000">${p.prodDays}</td>
+      <td style="text-align:center;color:#000">${ccAct}</td><td style="text-align:center;color:#000">${ccPct}%</td>
+      <td style="text-align:center;color:#000">${ahtAct}</td><td style="text-align:center;color:#000">${ahtPct}%</td>
+      <td style="text-align:center;color:#000">${ttfaAct}%</td><td style="text-align:center;color:#000">${ttfaPct}%</td>
+      <td style="text-align:center;color:#000">${pttAct}</td><td style="text-align:center;color:#000">${pttPct}%</td>
+      <td style="text-align:center;font-weight:700;color:#000">${bscRound}</td>
+      <td style="text-align:center;color:#000">${p.callsTB>0?Math.round(p.callsTB):''}</td>
+      <td style="text-align:center;font-weight:700;color:#000">${p.bscRank}</td>
+      <td style="text-align:center;font-weight:700;color:#000">INR ${p.tentative.toLocaleString('en-IN')}</td></tr>`;
+  }).join('');
+  // Grand total row
+  rows+=`<tr style="background:#E8F4EF">
+    <td colspan="11" style="text-align:right;font-weight:700;color:#000;padding:6px 10px">Total Tentative Payout (${data.length} PAs)</td>
+    <td colspan="3" style="font-weight:700;color:#0D6E4A;padding:6px 10px">INR ${grandTotal.toLocaleString('en-IN')}</td>
+  </tr>`;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#000}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;color:#000;white-space:nowrap}th{background:#0D6E4A;color:#fff;font-weight:700;text-align:center}.sh{background:#595959;color:#fff;font-weight:700;text-align:center}</style>
+  </head><body>
+  <p style="font-weight:700;font-size:13pt;color:#0D6E4A;margin-bottom:2px">Tentative Incentive - BSC Only - FY26 Q4</p>
+  <p style="font-size:9pt;color:#555;margin-bottom:8px">${refreshTxt} | ${data.length} PAs | Ranked by BSC Score | Attendance gate not applied</p>
+  <table><thead>
+    <tr>
+      <th rowspan="3">PA</th><th rowspan="3"># Productive Days</th>
+      <th colspan="2">Connected Calls</th>
+      <th colspan="2">First connected call AHT</th>
+      <th colspan="2">Adjusted TTFA</th>
+      <th colspan="2">Pure Talk Time</th>
+      <th rowspan="3">Balance Scorecard</th><th rowspan="3">Calls</th><th rowspan="3">RANK</th><th rowspan="3">AMOUNT</th>
+    </tr>
+    <tr>
+      <th class="sh">Target</th><th class="sh">21</th>
+      <th class="sh">Target</th><th class="sh">780</th>
+      <th class="sh">Target</th><th class="sh">95%</th>
+      <th class="sh">Target</th><th class="sh">145</th>
+    </tr>
+    <tr>
+      <th class="sh">Actuals</th><th class="sh">% Ach</th>
+      <th class="sh">Actuals</th><th class="sh">% Ach</th>
+      <th class="sh">Actuals</th><th class="sh">% Ach</th>
+      <th class="sh">Actuals</th><th class="sh">% Ach</th>
+    </tr>
+  </thead><tbody>${rows}</tbody></table>
+  <p style="margin-top:8px;font-size:9pt;color:#555">
+    <span style="background:#92D050;padding:2px 8px;border:1px solid #999;color:#000"> BSC 71-100 </span>
+    <span style="background:#FFFF99;padding:2px 8px;border:1px solid #999;color:#000"> BSC 61-70 </span>
+    <span style="background:#FFCCCC;padding:2px 8px;border:1px solid #999;color:#000"> BSC 0-60 </span>
+  </p></body></html>`;
+  copyHTML(html,data.length+' PAs copied (Tentative, rank order) - paste into Teams.');
+}
+
+// ── APM-TL MAP in TL view ─────────────────────────────────────────
+function renderAPMTLMap(){
+  const el=document.getElementById('tl-apm-map');
+  if(!el||!allPAs.length)return;
+  const tlMap={};
+  allPAs.forEach(p=>{
+    if(!p.tl||!p.apm)return;
+    if(!tlMap[p.tl])tlMap[p.tl]=new Set();
+    tlMap[p.tl].add(p.apm);
+  });
+  el.innerHTML=Object.entries(tlMap).sort((a,b)=>a[0].localeCompare(b[0])).map(([tl,apms])=>
+    `<div style="background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:8px 12px;font-size:12px">
+      <div style="font-weight:700;color:var(--brand);margin-bottom:4px">🏢 ${tl}</div>
+      ${[...apms].sort().map(a=>`<span style="display:inline-block;margin:2px 4px 2px 0;background:var(--brand-light);border:.5px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--gtext)">👤 ${a}</span>`).join('')}
+    </div>`
+  ).join('');
+}
+
+
+// ── FLOATING SCROLL ───────────────────────────────────────────────
+function initFloatScroll(){
+  const floatWrap=document.getElementById('pa-float-scroll');
+  const floatInner=document.getElementById('pa-float-inner');
+  const tblScroll=document.getElementById('pa-tbl-scroll');
+  if(!floatWrap||!floatInner||!tblScroll)return;
+  // Match inner width to table scroll width
+  const sync=()=>{floatInner.style.width=tblScroll.scrollWidth+'px';};
+  sync();
+  new ResizeObserver(sync).observe(tblScroll);
+  // Sync scroll positions
+  let blockFloat=false,blockTbl=false;
+  floatWrap.addEventListener('scroll',()=>{if(blockFloat)return;blockTbl=true;tblScroll.scrollLeft=floatWrap.scrollLeft;requestAnimationFrame(()=>blockTbl=false);});
+  tblScroll.addEventListener('scroll',()=>{if(blockTbl)return;blockFloat=true;floatWrap.scrollLeft=tblScroll.scrollLeft;requestAnimationFrame(()=>blockFloat=false);});
+}
+
+
+function toggleDetails(btn){
+  const tbl=document.querySelector('#tab-incentive .pa-sticky-table');
+  if(!tbl)return;
+  const hidden=tbl.classList.toggle('hide-details');
+  btn.textContent=hidden?'⊞ Show Gate Details':'⊟ Hide Gate Details';
+}
+
+// ── RANK ADVISOR TL/APM SECTION ───────────────────────────────────
+function renderAdvisorForEntity(entity, rankedList, label){
+  if(!entity)return '<div class="no-data">Select a '+label+' above to see advice.</div>';
+  const above=rankedList.find(x=>x.rank===entity.rank-1);
+  const contribs=METRICS.map(m=>({
+    ...m,
+    curr:Math.min(entity[m.key]/m.target,1),
+    currPts:Math.min(entity[m.key]/m.target,1)*25,
+    gap:(1-Math.min(entity[m.key]/m.target,1))*25,
+    actual:entity[m.key]
+  }));
+  const sorted=[...contribs].sort((a,b)=>b.gap-a.gap);
+  const topFocus=sorted[0];
+  const adviceHtml=above?
+    `<div class="advice-box"><strong>To move Rank ${entity.rank} → ${entity.rank-1}</strong>, beat <strong>${above.name}</strong> (BSC ${fmt1(above.bsc)}). Gap: +${fmt1(above.bsc-entity.bsc)} pts.<br>Best lever: improve <strong>${topFocus.label}</strong> — currently at <strong>${topFocus.fmt(topFocus.actual)}</strong> vs target <strong>${topFocus.key==='ttfa'?'95%':topFocus.target}</strong>. ${topFocus.gap.toFixed(1)} BSC pts headroom.</div>`:
+    `<div class="advice-box"><strong>Rank 1 — Top position. Defend by maximising all metrics.</strong></div>`;
+  return`<div class="advisor-card">
+    <div class="advisor-headline">${entity.name}</div>
+    <div class="advisor-sub">Rank <strong>${entity.rank}</strong> of ${rankedList.length} ${label}s · BSC <strong>${fmt1(entity.bsc)}</strong> · ${entity.paCnt} PAs</div>
+    ${contribs.map(m=>{
+      const isFocus=m.key===topFocus.key;
+      const isBest=m.gap<0.5;
+      return`<div class="metric-row">
+        <span class="metric-name">${m.label}${isFocus?'<span class="focus-tag">FOCUS</span>':isBest?'<span class="best-tag">MAXED</span>':''}</span>
+        <div class="metric-bar-wrap"><div class="metric-bar-bg"><div class="metric-bar-fill" style="width:${Math.min(m.curr*100,100)}%;background:${isFocus?'#C0392B':isBest?'#0D6E4A':'#1a9a6c'}"></div></div></div>
+        <span class="metric-nums">${m.fmt(m.actual)} / ${m.key==='ttfa'?'95%':m.target}</span>
+        <span style="font-size:11px;color:${m.gap>1?'var(--rtext)':'var(--t3)'};min-width:60px;text-align:right">${m.gap>0.1?'-'+m.gap.toFixed(1)+' pts':'+'+m.currPts.toFixed(1)+' ✓'}</span>
+      </div>`;
+    }).join('')}
+    ${adviceHtml}
+  </div>`;
+}
+
+function renderTLAdvisor(){
+  const name=document.getElementById('adv-tl-select').value;
+  const ranked=rankEntities(tlData);
+  const e=ranked.find(x=>x.name===name);
+  document.getElementById('tl-advisor-output').innerHTML=renderAdvisorForEntity(e,ranked,'TL');
+}
+function renderAPMAdvisor(){
+  const name=document.getElementById('adv-apm-select').value;
+  const ranked=rankEntities(apmData);
+  const e=ranked.find(x=>x.name===name);
+  document.getElementById('apm-advisor-output').innerHTML=renderAdvisorForEntity(e,ranked,'APM');
+}
+
+// ── POPULATE TL/APM ADVISORS ──────────────────────────────────────
+function populateAdvisors(){
+  const tlSel=document.getElementById('adv-tl-select');
+  const apmSel=document.getElementById('adv-apm-select');
+  if(tlSel){
+    tlSel.innerHTML='<option value="">— Choose a TL —</option>';
+    rankEntities(tlData).forEach(t=>{const o=document.createElement('option');o.value=t.name;o.textContent=t.name+' (Rank '+t.rank+')';tlSel.appendChild(o);});
+  }
+  if(apmSel){
+    apmSel.innerHTML='<option value="">— Choose an APM —</option>';
+    rankEntities(apmData).forEach(a=>{const o=document.createElement('option');o.value=a.name;o.textContent=a.name+' (Rank '+a.rank+')';apmSel.appendChild(o);});
+  }
+}
+
 
 function resetDashboard(){
-  allPAs=[];trend7D=[];d1Data=[];tlData=[];apmData=[];
+  allPAs=[];trend7D=[];tlData=[];apmData=[];
   document.getElementById('upload-screen').style.display='flex';
   document.getElementById('dashboard').style.display='none';
   document.getElementById('file-input').value='';
