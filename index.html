@@ -4,7 +4,105 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Emeritus Performance Hub</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+function formatBSC(v){
+  const n = Number(v)||0;
+
+  // Raw values like 8335 -> 83.35
+  if(n > 100){
+    return (n).toFixed(1);
+  }
+
+  return n.toFixed(1);
+}
+
+</script>
+<script>
+function getBSCColor(v){
+  v = Number(v)||0;
+  if(v <= 60) return '#f8d7da';
+  if(v <= 70) return '#fff3cd';
+  return '#92D050';
+}
+
+function buildTeamsExportTable(rows, exportDate){
+  let html = `
+  <table style="border-collapse:collapse;border:2px solid #444;font-family:Calibri,Arial,sans-serif;font-size:11px;width:auto">
+    <thead>
+      <tr>
+        <th style="width:180px;padding:4px;border:2px solid #444;background:#F2F2F2;text-align:left;white-space:nowrap">
+          PA
+        </th>
+
+        <th style="width:90px;padding:4px;border:2px solid #444;background:#F2F2F2;text-align:center;white-space:nowrap">
+          Balance Score Card<div style="font-size:9px;margin-top:0">${exportDate||''}</div>
+        </th>
+
+        <th style="width:95px;padding:4px;border:2px solid #444;background:#F8F8F4;text-align:center;white-space:nowrap">
+          Daily Connected Calls
+        </th>
+
+        <th style="width:120px;padding:4px;border:2px solid #444;background:#F8F8F4;text-align:center;white-space:nowrap">
+          Daily First Connected AHT
+        </th>
+
+        <th style="width:90px;padding:4px;border:2px solid #444;background:#F8F8F4;text-align:center;white-space:nowrap">
+          Adjusted TTFA
+        </th>
+
+        <th style="width:95px;padding:4px;border:2px solid #444;background:#F8F8F4;text-align:center;white-space:nowrap">
+          # Pure Talk Time
+        </th>
+
+        <th style="width:80px;padding:4px;border:2px solid #444;background:#F8F8F4;text-align:center;white-space:nowrap">
+          # Dials
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+
+  rows.forEach(d=>{
+    const bsc = Number(d.bsc)||0;
+    const rowColor = getBSCColor(bsc);
+
+    html += `
+      <tr>
+        <td style="padding:4px;border:2px solid #444;text-align:left;font-weight:600;background:${rowColor};white-space:nowrap">
+          ${d.name||''}
+        </td>
+
+        <td style="padding:4px;border:2px solid #444;text-align:center;font-weight:700;background:${rowColor};white-space:nowrap">
+          ${(Number(bsc)||0).toFixed(1)}
+        </td>
+
+        <td style="padding:4px;border:2px solid #444;text-align:center;background:${rowColor};white-space:nowrap">
+          ${d.cc||0}
+        </td>
+
+        <td style="padding:4px;border:2px solid #444;text-align:center;background:${rowColor};white-space:nowrap">
+          ${d.aht||0}
+        </td>
+
+        <td style="padding:4px;border:2px solid #444;text-align:center;background:${rowColor};white-space:nowrap">
+          ${d.ttfa||0}%
+        </td>
+
+        <td style="padding:4px;border:2px solid #444;text-align:center;background:${rowColor};white-space:nowrap">
+          ${d.ptt||0}
+        </td>
+
+        <td style="padding:4px;border:2px solid #444;text-align:center;background:${rowColor};white-space:nowrap">
+          ${d.dials||0}
+        </td>
+      </tr>
+    `;
+  });
+
+  html += '</tbody></table>';
+  return html;
+}
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -19,7 +117,7 @@
   --shadow:0 1px 3px rgba(0,0,0,0.08);
   --r:8px;--rl:12px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
 /* TOPBAR */
 .topbar{background:var(--brand);color:white;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .topbar-logo{font-size:15px;font-weight:600;letter-spacing:.5px}
@@ -109,7 +207,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .pa-sticky-table tr:hover td:nth-child(1),
 .pa-sticky-table tr:hover td:nth-child(2),
 .pa-sticky-table tr:hover td:nth-child(3){background:#FAFAF6}
-table{width:100%;border-collapse:collapse;font-size:12px}
+table{width:100%;border-collapse:collapse;border:2px solid #444;font-size:12px}
 thead th{background:#F8F8F4;padding:8px 11px;text-align:left;font-size:10px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;border-bottom:.5px solid var(--border);cursor:pointer;user-select:none}
 thead th:hover{color:var(--brand)}
 thead th.sorted{color:var(--brand)}
@@ -226,8 +324,16 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:#1A1A16;color:white;padding:10px 20px;border-radius:var(--r);font-size:13px;opacity:0;transition:all .25s;z-index:9999;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
+
+<style>
+table, th, td, div, span, p {
+  font-family: Calibri, Arial, sans-serif !important;
+  font-size: 11pt !important;
+}
+</style>
+
 </head>
-<body>
+<body style="font-family:Calibri, Arial, sans-serif;font-size:11pt;">
 <div class="topbar">
   <div><div class="topbar-logo">Emeritus Performance Hub</div><div class="topbar-sub">BSC • Incentives • Effort Analytics &nbsp;·&nbsp; Online Certificates · India Outbound</div></div>
   <div id="topbar-refresh" style="font-size:11px;opacity:.75;text-align:right"></div>
@@ -246,6 +352,8 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
       <p><strong>Drag & drop</strong> your Excel file here</p>
       <p style="font-size:12px;margin-top:3px">or click to browse</p>
       <button class="btn-upload" onclick="event.stopPropagation();document.getElementById('file-input').click()">Choose File</button>
+
+
     </div>
     <input type="file" id="file-input" accept=".xlsx,.xls">
     <p class="upload-note">Reads PA · L7D Trend PA · D-1 · TL sheets · All calculations run in browser</p>
@@ -268,6 +376,7 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
     <button class="tab-btn" onclick="showTab('rankadvisor',this)">Rank Advisor</button>
     <button class="tab-btn" onclick="showTab('tlview',this)">TL / APM View</button>
     <button class="tab-btn" onclick="showTab('summary',this)">Incentive Summary</button>
+    <button class="tab-btn" onclick="showTab('d1stats',this)">📅 D-1 Stats</button>
   </div>
 
   <!-- TAB 1: INCENTIVE REPORT -->
@@ -284,7 +393,7 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
     <div style="background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap">
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📅 Working Days — Q4 FY26</div>
-        <table style="border-collapse:collapse;font-size:12px">
+        <table style="border-collapse:collapse;border:2px solid #444;font-size:12px">
           <thead>
             <tr>
               <th style="padding:4px 12px 4px 0;text-align:left;color:var(--t2);font-weight:600">Month</th>
@@ -409,8 +518,8 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
   <div id="tab-atrisk" class="tab-content">
     <div class="settings-bar">
       <span class="s-label">⚙ Quarter Progress</span>
-      <label>Working Days Elapsed <input type="number" id="ar-elapsed" value="31" min="1" max="58"></label>
-      <label>Total Working Days <input type="number" id="ar-total" value="58" min="1" max="100"></label>
+      <label>Working Days Elapsed <input type="number" id="ar-elapsed" value="31" min="1" max="200" onchange="renderAtRisk()"></label>
+      <span style="font-size:11px;color:var(--t3)">ROW remaining: <b id="ar-row-rem">27</b> · US remaining: <b id="ar-us-rem">31</b></span>
       <button class="btn-sm" onclick="renderAtRisk()">Update</button>
       <span style="font-size:11px;color:var(--t3);margin-left:8px">Days remaining = Total − Elapsed</span>
     </div>
@@ -526,14 +635,39 @@ tbody td{padding:8px 11px;vertical-align:middle;white-space:nowrap}
   </div>
 </div>
 
+  <!-- TAB: D-1 STATS -->
+  <div id="tab-d1stats" class="tab-content">
+    <div class="filters">
+      <span class="f-label">Filter TL:</span>
+      <div class="ms-wrap" id="ms-d1-tl"><button class="ms-trigger" data-label="TLs" onclick="toggleMS(event,'ms-d1-tl')">All TLs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-d1-tl-panel" style="display:none"><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-d1-tl" checked onchange="msToggleAll('ms-d1-tl',this)"> Select All</label><div class="ms-divider"></div><div id="ms-d1-tl-list"></div></div></div></div>
+      <span class="f-label">Filter APM:</span>
+      <div class="ms-wrap" id="ms-d1-apm"><button class="ms-trigger" data-label="APMs" onclick="toggleMS(event,'ms-d1-apm')">All APMs <span class="ms-arrow">▾</span></button><div class="ms-panel" id="ms-d1-apm-panel" style="display:none"><div class="ms-items"><label class="ms-item ms-all-item"><input type="checkbox" id="msa-d1-apm" checked onchange="msToggleAll('ms-d1-apm',this)"> Select All</label><div class="ms-divider"></div><div id="ms-d1-apm-list"></div></div></div></div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn-sm" style="background:#217346" onclick="copyD1Stats()">&#128203; Copy for Teams</button>
+        <button class="btn-sm" style="background:#1D6F42" onclick="exportD1Excel()">&#8595; Excel</button>
+      </div>
+    </div>
+    <div class="cards-row" id="d1-cards"></div>
+    <div class="tbl-wrap" style="margin-top:12px">
+      <div class="tbl-hdr"><span class="tbl-title" id="d1-title">D-1 Stats</span><span class="tbl-count" id="d1-count"></span></div>
+      <div class="tbl-scroll"><table id="d1-table">
+        <thead id="d1-thead"></thead>
+        <tbody id="d1-tbody"></tbody>
+      </table></div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--t3);display:flex;gap:16px;align-items:center">
+      <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#92D050;border:1px solid #aaa;border-radius:2px"></span>BSC 71-100</span>
+      <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#FFFF99;border:1px solid #aaa;border-radius:2px"></span>BSC 60-70</span>
+      <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:#FFCCCC;border:1px solid #aaa;border-radius:2px"></span>BSC 0-59</span>
+    </div>
+  </div>
+
 <div class="footer">Emeritus Performance Hub · BSC • Incentives • Effort Analytics · Online Certificates · India Outbound · Gating: ≥75% Productive Days & BSC ≥60</div>
 
 <script>
 const SLABS=[{from:1,to:7,amount:120000},{from:8,to:14,amount:100000},{from:15,to:23,amount:80000},{from:24,to:33,amount:70000},{from:34,to:44,amount:60000},{from:45,to:56,amount:40000},{from:57,to:69,amount:30000},{from:70,to:77,amount:15000},{from:78,to:Infinity,amount:0}];
 const TARGETS={cc:21,aht:780,ttfa:0.95,ptt:145};
-const METRICS=[{key:'cc',label:'Connected Calls',target:21,fmt:v=>Math.round(v)},{key:'aht',label:'AHT First Call (s)',target:780,fmt:v=>Math.round(v)},{key:'ttfa',label:'Adjusted TTFA',target:0.95,fmt:v=>Math.round(v*100)+'%'},{key:'ptt',label:'Pure Talk Time (min)',target:145,fmt:v=>Math.round(v)}];
-
-let allPAs=[], trend7D=[], tlData=[], apmData=[];
+const METRICS=[{key:'cc',label:'Connected Calls',target:21,fmt:v=>Number(v).toFixed(1)},{key:'aht',label:'AHT First Call (s)',target:780,fmt:v=>Number(v).toFixed(1)},{key:'ttfa',label:'Adjusted TTFA',target:0.95,fmt:v=>Math.round(v*100)+'%'},{key:'ptt',label:'Pure Talk Time (min)',target:145,fmt:v=>Number(v).toFixed(1)}];let allPAs=[], trend7D=[], tlData=[], apmData=[], d1Stats=[], d1DateLabel='';
 let sortStates={incentive:{col:'rank',asc:true}};
 
 function sn(v){const n=parseFloat(v);return isNaN(n)?0:n;}
@@ -564,6 +698,10 @@ document.getElementById('drop-zone').addEventListener('dragleave',e=>e.currentTa
 document.getElementById('drop-zone').addEventListener('drop',e=>{e.preventDefault();e.currentTarget.classList.remove('drag-over');if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0])});
 document.getElementById('file-input').addEventListener('change',e=>{if(e.target.files[0])processFile(e.target.files[0])});
 
+
+
+
+
 function processFile(file){
   // Show loading state
   const dropZone=document.getElementById('drop-zone');
@@ -589,15 +727,17 @@ function processFile(file){
       const paSheet=wb.SheetNames.find(s=>s.trim()==='PA');
       const t7Sheet=wb.SheetNames.find(s=>s.trim()==='L7D Trend PA');
       const tlSheet=wb.SheetNames.find(s=>s.trim()==='TL');
+      const d1Sheet=wb.SheetNames.find(s=>s.trim()==='D-1');
       if(!paSheet){
         if(dropZone) dropZone.innerHTML=origHTML;
         alert('Could not find "PA" sheet in the uploaded file.\n\nSheets found: '+wb.SheetNames.join(', '));
         return;
       }
-      const paRows=XLSX.utils.sheet_to_json(wb.Sheets[paSheet],{header:1,defval:null});
+      const paRows=XLSX.utils.sheet_to_json(wb.Sheets[paSheet],{header:1,defval:null,cellDates:true});
       const t7Rows=t7Sheet?XLSX.utils.sheet_to_json(wb.Sheets[t7Sheet],{header:1,defval:null}):[];
       const tlRows=tlSheet?XLSX.utils.sheet_to_json(wb.Sheets[tlSheet],{header:1,defval:null}):[];
-      parseAll(paRows,t7Rows,tlRows,file.name);
+      const d1Rows=d1Sheet?XLSX.utils.sheet_to_json(wb.Sheets[d1Sheet],{header:1,defval:null}):[];
+      parseAll(paRows,t7Rows,tlRows,d1Rows,file.name);
       if(dropZone) dropZone.innerHTML=origHTML;
     }catch(err){
       if(dropZone) dropZone.innerHTML=origHTML;
@@ -608,7 +748,7 @@ function processFile(file){
   reader.readAsArrayBuffer(file);
 }
 
-function parseAll(paRows,t7Rows,tlRows,fileName){
+function parseAll(paRows,t7Rows,tlRows,d1Rows,fileName){
   const refreshTime=(paRows[0]||[])[0]||'';
   const rtRaw=String(refreshTime).replace('Report last Refresh Time: ','').trim();
   const rt=formatRefreshTime(rtRaw);
@@ -621,7 +761,7 @@ function parseAll(paRows,t7Rows,tlRows,fileName){
     name:String(r[0]).trim(),apm:String(r[1]||'').trim(),tl:String(r[2]||'').trim(),
     shiftStart:parseShiftHour(r[3]),shiftEnd:parseShiftHour(r[4]),
     prodDays:sn(r[5]),cc:sn(r[6]),aht:sn(r[8]),ttfa:sn(r[10]),ptt:sn(r[12]),
-    bsc:sn(r[14]),callsTB:sn(r[15]),ttTB:sn(r[16]),empId:r[18]?String(r[18]):'',
+    bsc:Number(((sn(r[14])||0)<=1 ? (sn(r[14])||0)*100 : (sn(r[14])||0)).toFixed(1)),callsTB:sn(r[15]),ttTB:sn(r[16]),empId:r[18]?String(r[18]):'',
   }));
   document.getElementById('pa-count-info').textContent=allPAs.length+' PAs';
 
@@ -670,6 +810,8 @@ function parseAll(paRows,t7Rows,tlRows,fileName){
   populateMS('ms-apm-sel',paApmNames,'renderTLView()');
   populateMS('ms-sum-tl',tlNames,'renderSummary()');
   populateMS('ms-sum-apm',apms,'renderSummary()');
+  populateMS('ms-d1-tl',tlNames,'renderD1Stats()');
+  populateMS('ms-d1-apm',paApmNames,'renderD1Stats()');
 
   // Populate PA advisor select
   const advSel=document.getElementById('adv-pa-select');
@@ -677,6 +819,32 @@ function parseAll(paRows,t7Rows,tlRows,fileName){
   [...allPAs].sort((a,b)=>a.name.localeCompare(b.name)).forEach(p=>{
     const o=document.createElement('option');o.value=p.name;o.textContent=p.name+(p.apm?' ('+p.apm+')':'');advSel.appendChild(o);
   });
+
+  // ── D-1 Stats ────────────────────────────────────────────────────
+  d1Stats=[];d1DateLabel='';
+  if(d1Rows&&d1Rows.length){
+    const d1Raw=(d1Rows[0]||[])[3];
+    if(d1Raw){
+      try{
+        const dd=typeof d1Raw==='number'?new Date(Math.round((d1Raw-25569)*86400*1000)):new Date(d1Raw);
+        if(!isNaN(dd.getTime())){
+          const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          d1DateLabel=dd.getDate()+'-'+months[dd.getMonth()]+'-'+dd.getFullYear();
+        }else d1DateLabel=String(d1Raw).substring(0,10);
+      }catch(e){d1DateLabel=String(d1Raw).substring(0,10);}
+    }
+    let paStart=-1;
+    d1Rows.forEach((r,i)=>{if(r&&r[0]&&String(r[0]).trim()==='PA')paStart=i+1;});
+    if(paStart>=0){
+      d1Stats=d1Rows.slice(paStart).filter(r=>r&&r[0]&&String(r[0]).trim()&&String(r[0]).trim()!=='Overall').map(r=>({
+        name:String(r[0]).trim(),apm:String(r[1]||'').trim(),tl:String(r[2]||'').trim(),
+        shift:String(r[3]||'').trim(),dials:sn(r[4]),
+        cc:sn(r[6]),ccPct:sn(r[7]),aht:sn(r[8]),ahtPct:sn(r[9]),
+        ttfa:sn(r[10]),ttfaPct:sn(r[11]),ptt:sn(r[12]),pttPct:sn(r[13]),bsc:Number(((sn(r[14])||0)<=1 ? (sn(r[14])||0)*100 : (sn(r[14])||0)).toFixed(1))
+      }));
+    }
+  }
+
 
   recalculate();
   document.getElementById('upload-screen').style.display='none';
@@ -686,8 +854,14 @@ function parseAll(paRows,t7Rows,tlRows,fileName){
 // ── Shift hour parser (handles Excel serial, "HH:MM", "H:MM AM/PM") ──
 function parseShiftHour(v){
   if(v===null||v===undefined||v==='')return null;
-  if(typeof v==='number'&&v>0&&v<1) return v*24; // Excel time serial
-  const s=String(v).trim().toUpperCase();
+  // Excel time serial (fraction of day, e.g. 0.7708 = 18:30)
+  if(typeof v==='number'&&v>=0&&v<1) return v*24;
+  // Full Excel date serial (e.g. 44000.7708) — extract time portion
+  if(typeof v==='number'&&v>=1){const frac=v%1;return frac*24;}
+  // Date object from XLSX cellDates (e.g. datetime.time(18,30))
+  if(v instanceof Date) return v.getHours()+v.getMinutes()/60;
+  // String: "18:30", "6:30 PM", "18:30 - 03:00" (range — take first part)
+  const s=String(v).trim().toUpperCase().split('-')[0].trim();
   const m=s.match(/(\d+):(\d+)\s*(AM|PM)?/);
   if(!m)return null;
   let h=parseInt(m[1]),mn=parseInt(m[2]);
@@ -744,6 +918,7 @@ function recalculate(){
   renderAtRisk();
   renderTLView();
   renderSummary();
+  renderD1Stats();
   populateAdvisors();
   initFloatScroll();
 }
@@ -920,17 +1095,18 @@ function showPATrend(name,row){
 // AT-RISK TRACKER
 function renderAtRisk(){
   const elapsed=parseInt(document.getElementById('ar-elapsed').value)||31;
-  const total=parseInt(document.getElementById('ar-total').value)||58;
-  const remaining=Math.max(0,total-elapsed);
+  const total=58;
   const minProd=0.75;
   const minBSCVal=60;
+  const remaining=Math.max(0,58-elapsed); // general fallback; per-PA uses p.remaining
   // prodNeed is computed per-PA as pNeed inside the map below
   const apmF=getSelectedMS('ms-ar-apm');
   const riskF=document.getElementById('ar-risk').value;
 
   let data=allPAs.map(p=>{
     // Pace-based: project productive days at current rate to end of quarter
-    const pTotal=p.totalDays||total; // per-PA totalDays (US=62/ROW=58)
+    const pTotal=p.totalDays||total; // per-PA totalDays
+    const remaining=Math.max(0,pTotal-elapsed); // per-PA remaining
     const pNeed=Math.ceil(minProd*pTotal);
     const prodRate=elapsed>0?p.prodDays/elapsed:0;
     const projectedProdDays=prodRate*pTotal;
@@ -969,11 +1145,11 @@ function renderAtRisk(){
     let detail='',action='';
     if(p.riskLevel==='double'){
       const dNeed=Math.max(0,(Math.ceil(minProd*(p.totalDays||total)))-p.prodDays);
-      detail=`Both gates at risk. Needs ${dNeed} more productive days in ${remaining} remaining (${p.prodDays} days worked of ${p.pNeed} (${Math.round(minProd*100)}% of ${p.totalDays||total})). BSC: ${fmt1(p.bsc)}/60 (gap: ${fmt1(p.bscGap)}).`;
+      detail=`Both gates at risk. Needs ${dNeed} more productive days in ${p.remaining} remaining (${p.prodDays} days worked of ${p.pNeed} (${Math.round(minProd*100)}% of ${p.totalDays||total})). BSC: ${fmt1(p.bsc)}/60 (gap: ${fmt1(p.bscGap)}).`;
       action=`Must hit ≥20 dials on ${dNeed} of the next ${remaining} days AND improve ${p.weakest.label} for BSC.`;
     }else if(p.riskLevel==='prod'){
       const dNeed=Math.max(0,(Math.ceil(minProd*(p.totalDays||total)))-p.prodDays);
-      detail=`Productive days at risk. Needs ${dNeed} more productive days in ${remaining} remaining working days (${p.prodDays} days worked of ${p.pNeed} (${Math.round(minProd*100)}% of ${p.totalDays||total})). BSC: ${fmt1(p.bsc)} ✓`;
+      detail=`Productive days at risk. Needs ${dNeed} more productive days in ${p.remaining} remaining working days (${p.prodDays} days worked of ${p.pNeed} (${Math.round(minProd*100)}% of ${p.totalDays||total})). BSC: ${fmt1(p.bsc)} ✓`;
       action=dNeed>remaining?'⚠ Cannot reach gate even if all remaining days are productive.':'Must achieve ≥20 dials on at least '+dNeed+' of the next '+remaining+' working days.';
     }else if(p.riskLevel==='bsc'){
       const dNeed=Math.max(0,(Math.ceil(minProd*(p.totalDays||total)))-p.prodDays);
@@ -981,7 +1157,7 @@ function renderAtRisk(){
       action=`Focus on ${p.weakest.label}. Currently at ${p.weakest.actual} vs target ${p.weakest.target}.`;
     }else{
       const dNeed=Math.max(0,(Math.ceil(minProd*(p.totalDays||total)))-p.prodDays);
-      detail=`On track. Needs ${dNeed} more productive days in ${remaining} remaining. BSC: ${fmt1(p.bsc)} ✓ · Rank: ${p.rank} · Incentive: ${p.incentive>0?fmtINR(p.incentive):'₹0'}`;
+      detail=`On track. Needs ${dNeed} more productive days in ${p.remaining} remaining. BSC: ${fmt1(p.bsc)} ✓ · Rank: ${p.rank} · Incentive: ${p.incentive>0?fmtINR(p.incentive):'₹0'}`;
       action='';
     }
     return`<div class="risk-card">
@@ -1086,7 +1262,7 @@ function renderTLView(){
     if(!p.apm)return;
     if(!apmGroups[p.apm])apmGroups[p.apm]={name:p.apm,paCnt:0,cc:0,aht:0,ttfa:0,ptt:0,bsc:0};
     const g=apmGroups[p.apm];
-    g.paCnt++;g.cc+=p.cc;g.aht+=p.aht;g.ttfa+=p.ttfa;g.ptt+=p.ptt;g.bsc+=p.bsc;
+    g.paCnt++;g.cc+=p.cc;g.aht+=p.aht;g.ttfa+=p.ttfa;g.ptt+=p.ptt;g.bsc+=(Number(p.bsc||0)).toFixed(1);
   });
   let derivedAPM=Object.values(apmGroups).map(g=>({
     ...g,cc:g.cc/g.paCnt,aht:g.aht/g.paCnt,ttfa:g.ttfa/g.paCnt,ptt:g.ptt/g.paCnt,bsc:g.bsc/g.paCnt
@@ -1253,7 +1429,7 @@ function showTab(id,btn){
 
 // ── EXPORT HELPERS ──────────────────────────────────────────────────
 function rowBg(p){
-  const bsc=p.bsc;
+  const bsc=(Number(p.bsc||0)).toFixed(1);
   if(bsc<=60)return{bg:'#FFCCCC',fg:'#7B0000'};
   if(bsc<=70)return{bg:'#FFFF99',fg:'#5A4000'};
   return{bg:'#92D050',fg:'#1F4E00'};
@@ -1287,7 +1463,7 @@ function getFilteredPAs(f){
 
 // ── BUILD HTML FOR EXPORT / COPY ──────────────────────────────────
 function rowBg(p){
-  const bsc=p.bsc;
+  const bsc=(Number(p.bsc||0)).toFixed(1);
   if(bsc<=60)return{bg:'#FFCCCC',fg:'#7B0000'};
   if(bsc<=70)return{bg:'#FFFF99',fg:'#5A4000'};
   return{bg:'#92D050',fg:'#1F4E00'};
@@ -1310,7 +1486,7 @@ function buildPAHtml(filters){
       const ccPct=Math.min(p.cc/21,1);const ahtPct=Math.min(p.aht/780,1);const ttfaPct=Math.min(p.ttfa/0.95,1);const pttPct=Math.min(p.ptt/145,1);
       rows+=`<tr style="background:${c.bg};color:#000">
         <td style="text-align:center;font-weight:600;color:#000">${i+1}</td>
-        <td style="font-style:italic;font-weight:700;color:#000">${p.name}</td>
+        <td style="font-weight:700;color:#000">${p.name}</td>
         <td style="text-align:center;color:#000">${p.prodDays}</td>
         <td style="text-align:center;color:#000">${Math.round(p.cc)}</td>
         <td style="text-align:center;color:#000">${Math.round(ccPct*100)}%</td>
@@ -1320,7 +1496,7 @@ function buildPAHtml(filters){
         <td style="text-align:center;color:#000">${Math.round(ttfaPct*100)}%</td>
         <td style="text-align:center;color:#000">${Math.round(p.ptt)}</td>
         <td style="text-align:center;color:#000">${Math.round(pttPct*100)}%</td>
-        <td style="text-align:center;font-weight:700;color:#000">${Math.round(p.bsc*100)/100}</td>
+        <td style="text-align:center;font-weight:700;color:#000">${Number(p.bsc).toFixed(1)}</td>
         <td style="text-align:center;color:#000">${p.callsTB>0?Math.round(p.callsTB):''}</td>
         <td style="text-align:center;font-weight:700;color:#000">${p.rank}</td>
         <td style="text-align:center;font-weight:700;color:#000">${p.incentive>0?'INR '+p.incentive.toLocaleString('en-IN'):'INR 0'}</td>
@@ -1335,7 +1511,7 @@ function buildPAHtml(filters){
     f.search?'Search: "'+f.search+'"':''
   ].filter(Boolean).join(' · ');
   return`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.grp-hdr{background:#1F4E78;color:white;font-weight:700;font-size:10pt;text-align:center;padding:4px 6px}</style></head><body>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;border:2px solid #444;width:100%}th,td{border:2px solid #444;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.grp-hdr{background:#1F4E78;color:white;font-weight:700;font-size:10pt;text-align:center;padding:4px 6px}</style></head><body>
   <h2 style="color:#0D6E4A;margin-bottom:4px">BSC Incentive Report — FY26 Q4</h2>
   <p style="color:#666;font-size:10pt;margin-bottom:4px">${refreshTxt} &nbsp;|&nbsp; ${filteredPAs.length} PAs &nbsp;|&nbsp; Gating: ≥75% Productive Days & BSC ≥60 &nbsp;|&nbsp; Total Working Days: ${totalDays}</p>
   ${filterNote?`<p style="color:#0D6E4A;font-size:10pt;margin-bottom:10px">Filters: ${filterNote}</p>`:''}
@@ -1428,7 +1604,7 @@ function buildTLHtml(filters){
     f.apms&&f.apms.length?'APMs: '+f.apms.join(', '):''
   ].filter(Boolean).join(' · ');
   return`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}tr:nth-child(even){background:#F5F5F0}</style>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;border:2px solid #444;width:100%}th,td{border:2px solid #444;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}tr:nth-child(even){background:#F5F5F0}</style>
   </head><body>
   <h2 style="color:#0D6E4A;margin-bottom:4px">TL / APM Performance — Emeritus Performance Hub</h2>
   <p style="color:#666;font-size:10pt;margin-bottom:4px">${refreshTxt}</p>
@@ -1539,7 +1715,7 @@ function renderSummary(){
       <td style="font-weight:600">${p.name}</td>
       <td>${p.apm||'—'}</td><td>${p.tl||'—'}</td>
       <td style="text-align:center">${p.prodDays}</td>
-      <td style="text-align:center">${totalDays}</td>
+      <td style="text-align:center">${p.totalDays||totalDays}</td>
       <td style="text-align:center">${(p.prodPct*100).toFixed(1)}%</td>
       <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
       <td style="text-align:center">${p.prodElig?'✓ Yes':'✗ No'}</td>
@@ -1595,7 +1771,7 @@ function buildSummaryHtml(){
     return`<tr style="background:${c.bg};color:${c.fg}">
       <td style="text-align:center;font-weight:700">${p.rank}</td><td style="font-weight:600">${p.name}</td>
       <td>${p.apm||'—'}</td><td>${p.tl||'—'}</td>
-      <td style="text-align:center">${p.prodDays}</td><td style="text-align:center">${totalDays}</td>
+      <td style="text-align:center">${p.prodDays}</td><td style="text-align:center">${p.totalDays||totalDays}</td>
       <td style="text-align:center">${(p.prodPct*100).toFixed(1)}%</td>
       <td style="text-align:center;font-weight:700">${fmt1(p.bsc)}</td>
       <td style="text-align:center">${p.prodElig?'✓ Yes':'✗ No'}</td>
@@ -1604,7 +1780,7 @@ function buildSummaryHtml(){
       <td style="text-align:center;font-weight:700">${p.incentive>0?'₹'+p.incentive.toLocaleString('en-IN'):'₹0'}</td></tr>`;
   }).join('');
   return`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%;margin-bottom:16px}th,td{border:1px solid #999;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.mbox{display:inline-block;border:1px solid #C0C0C0;padding:7px 14px;margin:3px;min-width:130px;text-align:center}.ml{font-size:9pt;color:#888;display:block}.mv{font-size:13pt;font-weight:700;color:#0D6E4A}</style>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;border:2px solid #444;width:100%;margin-bottom:16px}th,td{border:2px solid #444;padding:5px 8px;white-space:nowrap;color:#000}th{background:#0D6E4A;color:white;font-weight:700;text-align:center}.mbox{display:inline-block;border:1px solid #C0C0C0;padding:7px 14px;margin:3px;min-width:130px;text-align:center}.ml{font-size:9pt;color:#888;display:block}.mv{font-size:13pt;font-weight:700;color:#0D6E4A}</style>
   </head><body>
   <h2 style="color:#0D6E4A;margin-bottom:2px">🏆 Incentive Summary — FY26 Q4</h2>
   <p style="color:#888;font-size:9pt;margin-bottom:8px">${refreshTxt}</p>
@@ -1672,7 +1848,7 @@ function copyPAScreen(){
     </tr>`;
   }).join('');
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;color:#000;white-space:nowrap}th{background:#0D6E4A;color:#fff;font-weight:700;text-align:center}</style>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt}table{border-collapse:collapse;border:2px solid #444;width:100%}th,td{border:2px solid #444;padding:5px 8px;color:#1F2937;white-space:nowrap}th{background:#0D6E4A;color:#fff;font-weight:700;text-align:center}</style>
   </head><body><h3 style="color:#0D6E4A;margin-bottom:6px">PA Incentive Report — ${refreshTxt}</h3>
   <table><thead><tr><th>S.No</th><th>PA Name</th><th>APM</th><th>Prod Days</th><th>Prod %</th><th>BSC</th><th>CC</th><th>AHT</th><th>TTFA</th><th>PTT</th><th>BSC Rank</th><th>Prod Elig?</th><th>BSC Elig?</th><th>Inc. Elig?</th><th>Actual (₹)</th><th>Tentative (₹)</th></tr></thead>
   <tbody>${rows}</tbody></table></body></html>`;
@@ -1704,9 +1880,9 @@ function copyPATentative(){
     const ttfaPct=Math.round(Math.min(p.ttfa/0.95,1)*100);
     const pttAct=Math.round(p.ptt);
     const pttPct=Math.round(Math.min(p.ptt/145,1)*100);
-    const bscRound=Math.round(p.bsc*100)/100;
+    const bscRound=Number(p.bsc*100).toFixed(1)/100;
     return`<tr style="background:${c.bg}">
-      <td style="font-weight:700;font-style:italic;color:#000">${p.name}</td>
+      <td style="font-weight:700;color:#000">${p.name}</td>
       <td style="text-align:center;color:#000">${p.prodDays}</td>
       <td style="text-align:center;color:#000">${ccAct}</td><td style="text-align:center;color:#000">${ccPct}%</td>
       <td style="text-align:center;color:#000">${ahtAct}</td><td style="text-align:center;color:#000">${ahtPct}%</td>
@@ -1719,11 +1895,11 @@ function copyPATentative(){
   }).join('');
   // Grand total row
   rows+=`<tr style="background:#E8F4EF">
-    <td colspan="11" style="text-align:right;font-weight:700;color:#000;padding:6px 10px">Total Tentative Payout (${data.length} PAs)</td>
+    <td colspan="11" style="text-align:right;font-weight:700;color:#1F2937;padding:6px 10px">Total Tentative Payout (${data.length} PAs)</td>
     <td colspan="3" style="font-weight:700;color:#0D6E4A;padding:6px 10px">INR ${grandTotal.toLocaleString('en-IN')}</td>
   </tr>`;
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#000}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:5px 8px;color:#000;white-space:nowrap}th{background:#0D6E4A;color:#fff;font-weight:700;text-align:center}.sh{background:#595959;color:#fff;font-weight:700;text-align:center}</style>
+  <style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#000}table{border-collapse:collapse;border:2px solid #444;width:100%}th,td{border:2px solid #444;padding:5px 8px;color:#1F2937;white-space:nowrap}th{background:#0D6E4A;color:#fff;font-weight:700;text-align:center}.sh{background:#595959;color:#fff;font-weight:700;text-align:center}</style>
   </head><body>
   <p style="font-weight:700;font-size:13pt;color:#0D6E4A;margin-bottom:2px">Tentative Incentive - BSC Only - FY26 Q4</p>
   <p style="font-size:9pt;color:#555;margin-bottom:8px">${refreshTxt} | ${data.length} PAs | Ranked by BSC Score | Attendance gate not applied</p>
@@ -1750,9 +1926,9 @@ function copyPATentative(){
     </tr>
   </thead><tbody>${rows}</tbody></table>
   <p style="margin-top:8px;font-size:9pt;color:#555">
-    <span style="background:#92D050;padding:2px 8px;border:1px solid #999;color:#000"> BSC 71-100 </span>
-    <span style="background:#FFFF99;padding:2px 8px;border:1px solid #999;color:#000"> BSC 61-70 </span>
-    <span style="background:#FFCCCC;padding:2px 8px;border:1px solid #999;color:#000"> BSC 0-60 </span>
+    <span style="background:#92D050;padding:2px 8px;border:2px solid #444;color:#000"> BSC 71-100 </span>
+    <span style="background:#FFFF99;padding:2px 8px;border:2px solid #444;color:#000"> BSC 61-70 </span>
+    <span style="background:#FFCCCC;padding:2px 8px;border:2px solid #444;color:#000"> BSC 0-60 </span>
   </p></body></html>`;
   copyHTML(html,data.length+' PAs copied (Tentative, rank order) - paste into Teams.');
 }
@@ -1864,6 +2040,202 @@ function populateAdvisors(){
     apmSel.innerHTML='<option value="">— Choose an APM —</option>';
     rankEntities(apmData).forEach(a=>{const o=document.createElement('option');o.value=a.name;o.textContent=a.name+' (Rank '+a.rank+')';apmSel.appendChild(o);});
   }
+}
+
+
+// ── D-1 STATS TAB ─────────────────────────────────────────────────
+function d1bscBg(bsc){
+  if(bsc>=71) return{bg:'#92D050',fg:'#1a4a00'};
+  if(bsc>=60) return{bg:'#FFFF99',fg:'#5a4000'};
+  return{bg:'#FFCCCC',fg:'#7a0000'};
+}
+
+function getD1Filtered(){
+  const tlF =getSelectedMS('ms-d1-tl');
+  const apmF=getSelectedMS('ms-d1-apm');
+  let data=[...d1Stats];
+  // TL cascade → APM
+  if(tlF.length){
+    const apmUnderTL=new Set();
+    data.filter(p=>tlF.includes(p.tl)).forEach(p=>apmUnderTL.add(p.apm));
+    data=data.filter(p=>tlF.includes(p.tl));
+  }
+  if(apmF.length) data=data.filter(p=>apmF.includes(p.apm));
+  return data.sort((a,b)=>b.bsc-a.bsc);
+}
+
+function renderD1Stats(){
+  if(!d1Stats.length){
+    document.getElementById('d1-tbody').innerHTML='<tr><td colspan="7" class="no-data">Upload a file with D-1 sheet to see yesterday&#39;s stats.</td></tr>';
+    document.getElementById('d1-count').textContent='';
+    return;
+  }
+  const data=getD1Filtered();
+  document.getElementById('d1-title').textContent='D-1 Stats — '+d1DateLabel;
+  document.getElementById('d1-count').textContent=data.length+' PAs';
+
+  // Cards
+  const avgBSC=data.length?data.reduce((s,p)=>s+p.bsc,0)/data.length:0;
+  const avgCC=data.length?data.reduce((s,p)=>s+p.cc,0)/data.length:0;
+  const avgDials=data.length?data.reduce((s,p)=>s+p.dials,0)/data.length:0;
+  const g71=data.filter(p=>p.bsc>=71).length;
+  const g60=data.filter(p=>p.bsc>=60&&p.bsc<71).length;
+  const r59=data.filter(p=>p.bsc<60).length;
+  document.getElementById('d1-cards').innerHTML=`
+    <div class="card blue"><div class="card-label">📅 D-1 Date</div><div class="card-value" style="font-size:16px">${d1DateLabel||'—'}</div></div>
+    <div class="card"><div class="card-label">👥 PAs Shown</div><div class="card-value">${data.length}</div></div>
+    <div class="card blue"><div class="card-label">📊 Avg BSC (D-1)</div><div class="card-value">${Number(avgBSC*10).toFixed(1)/10}</div></div>
+    <div class="card green"><div class="card-label">✅ BSC 71+</div><div class="card-value">${g71}</div></div>
+    <div class="card"><div class="card-label">⚠ BSC 60–70</div><div class="card-value">${g60}</div></div>
+    <div class="card red"><div class="card-label">❌ BSC &lt;60</div><div class="card-value">${r59}</div></div>
+    <div class="card"><div class="card-label">📞 Avg Calls</div><div class="card-value">${Math.round(avgCC)}</div></div>
+    <div class="card"><div class="card-label">📟 Avg Dials</div><div class="card-value">${Math.round(avgDials)}</div></div>`;
+
+  // Table header
+  document.getElementById('d1-thead').innerHTML=`
+    <tr>
+      <th style="text-align:left;background:#2d5f8a;color:#fff">PA</th>
+      <th style="background:#2d5f8a;color:#fff">Balance Score Card Trend</th>
+      <th style="background:#c0504d;color:#fff">Daily Connected Calls</th>
+      <th style="background:#c0504d;color:#fff">Daily First Connected AHT</th>
+      <th style="background:#4a7c59;color:#fff">Adjusted TTFA</th>
+      <th style="background:#4a7c59;color:#fff"># Pure Talk Time</th>
+      <th style="background:#595959;color:#fff"># Dials</th>
+    </tr>
+    <tr>
+      <th style="background:#3a7ab3;color:#fff;text-align:left;font-size:11px">—</th>
+      <th style="background:#3a7ab3;color:#fff;font-size:11px">${d1DateLabel}</th>
+      <th style="background:#c0504d;color:#fff;font-size:11px">${d1DateLabel}</th>
+      <th style="background:#c0504d;color:#fff;font-size:11px">${d1DateLabel}</th>
+      <th style="background:#4a7c59;color:#fff;font-size:11px">${d1DateLabel}</th>
+      <th style="background:#4a7c59;color:#fff;font-size:11px">${d1DateLabel}</th>
+      <th style="background:#595959;color:#fff;font-size:11px">${d1DateLabel}</th>
+    </tr>`;
+
+  // Table rows — sorted by BSC desc, no APM segregation
+  document.getElementById('d1-tbody').innerHTML=data.map(p=>{
+    const c=d1bscBg(p.bsc);
+    return`<tr style="background:${c.bg};color:${c.fg}">
+      <td style="font-weight:700;padding:5px 10px;border:1px solid #ddd">${p.name}</td>
+      <td style="text-align:center;font-weight:700;padding:5px 8px;border:1px solid #ddd">${Number(p.bsc).toFixed(1)}</td>
+      <td style="text-align:center;padding:5px 8px;border:1px solid #ddd">${Math.round(p.cc)}</td>
+      <td style="text-align:center;padding:5px 8px;border:1px solid #ddd;background-color:rgba(192,80,77,0.1)">${Math.round(p.aht)}</td>
+      <td style="text-align:center;padding:5px 8px;border:1px solid #ddd">${Math.round(p.ttfa*100)}%</td>
+      <td style="text-align:center;padding:5px 8px;border:1px solid #ddd">${Math.round(p.ptt)}</td>
+      <td style="text-align:center;padding:5px 8px;border:1px solid #ddd;background-color:rgba(89,89,89,0.15)">${Math.round(p.dials)}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+
+function buildD1Html(){
+  const data=getD1Filtered();
+
+  const rows=data.map(p=>{
+    const bsc=Number(p.bsc)||0;
+
+    let rowColor='#92D050';
+    if(bsc<=60) rowColor='#F4CCCC';
+    else if(bsc<=70) rowColor='#E6E691';
+
+    return `<tr>
+      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;font-weight:600;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor};text-align:left;white-space:nowrap">
+        ${p.name}
+      </td>
+
+      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;text-align:center;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor}">
+        ${(Number(bsc)||0).toFixed(1)}
+      </td>
+
+      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;text-align:center;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor}">
+        ${Math.round(p.cc)}
+      </td>
+
+      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;text-align:center;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor}">
+        ${Math.round(p.aht)}
+      </td>
+
+      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;text-align:center;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor}">
+        ${Math.round(p.ttfa*100)}%
+      </td>
+
+      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;text-align:center;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor}">
+        ${Math.round(p.ptt)}
+      </td>
+
+      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;text-align:center;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor}">
+        ${Math.round(p.dials)}
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+  <html>
+  <head>
+  <meta charset="UTF-8">
+  </head>
+
+  <body>
+
+  <div style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:700;color:#1F3864;margin-bottom:4px">
+    D-1 Stats — ${d1DateLabel}
+  </div>
+
+  <table style="border-collapse:collapse;border:2px solid #555;width:auto">
+
+    <thead>
+      <tr>
+        <th style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:700;text-align:center;padding:4px 8px;border:2px solid #555;background:#F2F2F2;white-space:nowrap">
+          PA
+        </th>
+
+        <th style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:700;text-align:center;padding:4px 8px;border:2px solid #555;background:#F2F2F2;white-space:nowrap">
+          Balance<br>Score Card
+        </th>
+
+        <th style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:700;text-align:center;padding:4px 8px;border:2px solid #555;background:#F2F2F2;white-space:nowrap">
+          Daily Connected<br>Calls
+        </th>
+
+        <th style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:700;text-align:center;padding:4px 8px;border:2px solid #555;background:#F2F2F2;white-space:nowrap">
+          Daily First<br>Connected AHT
+        </th>
+
+        <th style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:700;text-align:center;padding:4px 8px;border:2px solid #555;background:#F2F2F2;white-space:nowrap">
+          Adjusted<br>TTFA
+        </th>
+
+        <th style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:700;text-align:center;padding:4px 8px;border:2px solid #555;background:#F2F2F2;white-space:nowrap">
+          # Pure Talk<br>Time
+        </th>
+
+        <th style="font-family:Calibri,Arial,sans-serif;font-size:10pt;font-weight:700;text-align:center;padding:4px 8px;border:2px solid #555;background:#F2F2F2;white-space:nowrap">
+          # Dials
+        </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+
+  </body>
+  </html>`;
+}
+
+
+
+function copyD1Stats(){
+  if(!d1Stats.length){alert('Upload a file first.');return;}
+  copyHTML(buildD1Html(),getD1Filtered().length+' PAs copied (D-1 Stats) — paste into Teams.');
+}
+function exportD1Excel(){
+  if(!d1Stats.length){alert('Upload a file first.');return;}
+  const blob=new Blob([buildD1Html()],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='D1_Stats_'+d1DateLabel+'.xls';a.click();URL.revokeObjectURL(url);
 }
 
 
