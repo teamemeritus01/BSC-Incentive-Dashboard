@@ -118,6 +118,44 @@ function buildTeamsExportTable(rows, exportDate){
   --r:8px;--rl:12px;
 }
 body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* ── COACHING PANEL ─────────────────────────── */
+.coach-panel{margin-top:18px}
+.coach-status{border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px}
+.coach-status-icon{font-size:20px;line-height:1}
+.coach-status-title{font-size:14px;font-weight:700;margin-bottom:2px}
+.coach-status-sub{font-size:12px;opacity:.85}
+.coach-section{background:var(--card);border:.5px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:12px}
+.coach-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--t3);margin-bottom:10px}
+.impact-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:.5px solid var(--border);flex-wrap:wrap}
+.impact-row:last-child{border-bottom:none}
+.impact-metric{font-size:12px;font-weight:600;min-width:130px;color:var(--text)}
+.impact-bar{flex:1;min-width:80px;height:7px;background:#eee;border-radius:4px;overflow:hidden}
+.impact-fill{height:100%;border-radius:4px}
+.impact-nums{font-size:11px;color:var(--t2);min-width:80px;text-align:right}
+.impact-gain{font-size:11px;font-weight:600;min-width:110px;text-align:right}
+.impact-gain.good{color:#0D6E4A}.impact-gain.warn{color:#B07800}.impact-gain.max{color:#1A6FB5}
+.rank-traj{background:linear-gradient(135deg,var(--brand-light),#f0fff8);border:.5px solid #b3d9c9;border-radius:8px;padding:14px 16px;margin-bottom:12px}
+.rank-traj-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.rank-chip{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-weight:700;font-size:13px}
+.rank-chip.cur{background:#ddd;color:#555}.rank-chip.new{background:var(--brand);color:#fff}
+.traj-arrow{color:var(--brand);font-size:18px;font-weight:700}
+.prod-coach{border-left:3px solid var(--brand);padding-left:12px}
+.prod-coach-stat{font-size:13px;font-weight:600;margin-bottom:4px}
+.prod-coach-pace{font-size:12px;color:var(--t2)}
+.coach-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.ai-email-section{background:#f0f4ff;border:.5px solid #c5d0f0;border-radius:8px;padding:14px 16px;margin-top:12px}
+.ai-email-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1A6FB5;margin-bottom:8px}
+.api-key-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.api-key-input{flex:1;min-width:180px;border:.5px solid #c5d0f0;border-radius:5px;padding:5px 8px;font-size:11px;font-family:monospace;background:#fff;color:var(--text)}
+.api-key-input:focus{outline:none;border-color:#1A6FB5}
+.email-draft-box{background:#fff;border:.5px solid #c5d0f0;border-radius:6px;padding:12px;font-size:12px;line-height:1.7;white-space:pre-wrap;margin-top:8px;max-height:280px;overflow-y:auto;color:var(--text)}
+.huddle-panel{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:14px;margin-bottom:14px}
+.huddle-title{font-size:13px;font-weight:700;color:var(--brand);margin-bottom:10px}
+.huddle-section{margin-bottom:12px}
+.huddle-sub{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px}
+.huddle-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:.5px solid var(--border)}
+.huddle-row:last-child{border-bottom:none}
 /* TOPBAR */
 .topbar{background:var(--brand);color:white;padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .topbar-logo{font-size:15px;font-weight:600;letter-spacing:.5px}
@@ -140,18 +178,18 @@ body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-font-smoot
 /* DASHBOARD */
 #dashboard{display:none;padding:0}
 /* INFO BAR */
-.info-bar{display:flex;align-items:center;gap:10px;background:var(--card);border-bottom:.5px solid var(--border);padding:8px 24px;font-size:12px;color:var(--t2);flex-wrap:wrap}
-.info-bar .file-name{font-weight:600;color:var(--text)}
+.info-bar{display:flex;align-items:center;gap:10px;background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 24px;font-size:12px;color:var(--t2);flex-wrap:wrap;position:sticky;top:52px;z-index:90}
+.info-bar .file-name{font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:400px}
 .sep{color:var(--border-s)}
-.btn-reset{margin-left:auto;background:none;border:.5px solid var(--border-s);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--t2);transition:all .15s}
+.btn-reset{margin-left:auto;background:none;border:1px solid var(--border-s);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--t2);white-space:nowrap;flex-shrink:0;transition:all .15s}
 .btn-reset:hover{border-color:var(--brand);color:var(--brand)}
 /* TABS */
-.tab-nav{display:flex;gap:0;background:var(--card);border-bottom:.5px solid var(--border);padding:0 24px;overflow-x:auto}
-.tab-btn{padding:12px 16px;font-size:13px;font-weight:500;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none}
+.tab-nav{display:flex;gap:0;background:var(--card);border:1.5px solid var(--border-s);border-bottom:none;padding:0 24px;overflow-x:auto;margin-bottom:0;border-radius:6px 6px 0 0}
+.tab-btn{padding:12px 16px;font-size:14px;font-weight:700;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none}
 .tab-btn:hover{color:var(--brand)}
 .tab-btn.active{color:var(--brand);border-bottom-color:var(--brand)}
 /* TAB CONTENT */
-.tab-content{display:none;padding:20px 24px;max-width:1400px;margin:0 auto}
+.tab-content{display:none;padding:20px 24px;max-width:1400px;margin:0 auto;border:1.5px solid var(--border-s);border-top:none;border-radius:0 0 6px 6px}
 .tab-content.active{display:block}
 /* SETTINGS BAR */
 .settings-bar{background:var(--card);border:.5px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
@@ -332,6 +370,44 @@ table, th, td, div, span, p {
 }
 </style>
 
+
+<style id="tab-nav-sticky-fix">
+/* ── Tab nav: compact + sticky ────────────────────────── */
+.tab-shell{overflow:visible!important;}             /* needed for sticky to work */
+.tab-nav{
+  position:sticky!important;
+  top:88px!important;                               /* topbar(52) + infobar(~36) */
+  z-index:85!important;
+  background:var(--card)!important;
+  border-radius:0!important;                        /* shell provides the radius */
+  border-left:2px solid #c0c0b8!important;
+  border-right:2px solid #c0c0b8!important;
+  border-top:2px solid #c0c0b8!important;
+  border-bottom:2px solid #c0c0b8!important;
+  box-shadow:0 3px 8px rgba(0,0,0,0.08)!important;
+  justify-content:center!important;
+  padding:0 16px!important;
+}
+.tab-btn{
+  padding:7px 13px!important;                       /* compact — was 12px 16px */
+  font-size:13px!important;                         /* was 14px */
+  font-weight:700!important;
+}
+.tab-content{
+  border-left:2px solid #c0c0b8!important;
+  border-right:2px solid #c0c0b8!important;
+  border-bottom:2px solid #c0c0b8!important;
+  border-top:none!important;
+  border-radius:0 0 6px 6px!important;
+  max-width:100%!important;
+}
+.tab-shell{
+  border:none!important;                            /* individual borders handle it */
+  border-radius:0!important;
+  margin:8px auto 16px!important;
+  max-width:1400px!important;
+}
+</style>
 </head>
 <body style="font-family:Calibri, Arial, sans-serif;font-size:11pt;">
 <div class="topbar">
@@ -550,7 +626,8 @@ table, th, td, div, span, p {
       <span class="f-label">PA:</span>
       <select class="advisor-select" id="adv-pa-select" onchange="renderAdvisor()"><option value="">— Choose a PA —</option></select>
     </div>
-    <div id="advisor-output"><div class="no-data">Select a PA above to see rank improvement advice.</div></div>
+    <div id="advisor-output"><div class="no-data">Select a PA above to see their coaching note.</div></div>
+
     <div style="height:1px;background:var(--border);margin:20px 0"></div>
     <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span class="f-label">TL:</span>
@@ -645,8 +722,10 @@ table, th, td, div, span, p {
       <div style="margin-left:auto;display:flex;gap:8px">
         <button class="btn-sm" style="background:#217346" onclick="copyD1Stats()">&#128203; Copy for Teams</button>
         <button class="btn-sm" style="background:#1D6F42" onclick="exportD1Excel()">&#8595; Excel</button>
+        <button class="btn-sm" style="background:#4a6fa5" onclick="generateHuddle()">&#9788; Morning Huddle</button>
       </div>
     </div>
+    <div id="huddle-output"></div>
     <div class="cards-row" id="d1-cards"></div>
     <div class="tbl-wrap" style="margin-top:12px">
       <div class="tbl-hdr"><span class="tbl-title" id="d1-title">D-1 Stats</span><span class="tbl-count" id="d1-count"></span></div>
@@ -849,6 +928,7 @@ function parseAll(paRows,t7Rows,tlRows,d1Rows,fileName){
   recalculate();
   document.getElementById('upload-screen').style.display='none';
   document.getElementById('dashboard').style.display='block';
+  loadApiKey();
 }
 
 // ── Shift hour parser (handles Excel serial, "HH:MM", "H:MM AM/PM") ──
@@ -1187,57 +1267,97 @@ function getWeakestMetric(p){
 }
 
 // RANK ADVISOR
+function simRank(pa,newBsc){
+  let above=0;
+  allPAs.forEach(q=>{
+    if(q.name===pa.name)return;
+    if(q.bsc>newBsc)above++;
+    else if(q.bsc===newBsc&&q.callsTB>pa.callsTB)above++;
+  });
+  return above+1;
+}
+function coachBanner(p){
+  const b=p.bsc,el=p.eligible,bp=p.prodElig,bb=p.bscElig;
+  const sl=p.incentive>0?fmtINR(p.incentive):'₹0';
+  if(el&&b>=85)return{bg:'#E6F4EF',fg:'#0D6E4A',icon:'🌟',title:`Elite — ${sl} secured`,sub:`Rank ${p.rank} · BSC ${fmt1(b)} · Push for Rank ${Math.max(1,p.rank-1)} to unlock more.`};
+  if(el&&b>=71)return{bg:'#E6F4EF',fg:'#0D6E4A',icon:'✅',title:`Eligible — ${sl}`,sub:`Rank ${p.rank} · BSC ${fmt1(b)} · ${p.rank<=7?'Top slab!':'Improve metrics to climb ranks.'}`};
+  if(el&&b>=60)return{bg:'#FEF7E0',fg:'#B07800',icon:'⚠️',title:`Eligible but BSC gate is close`,sub:`Only ${fmt1(b-60)} pts above the 60-pt floor. BSC ${fmt1(b)} — protect it.`};
+  if(!bb)return{bg:'#FCEAE8',fg:'#9B2B1F',icon:'🚨',title:`BSC Gate Failing — ${fmt1(60-b)} pts below 60`,sub:`Current BSC: ${fmt1(b)}. See metric gaps below.`};
+  if(!bp)return{bg:'#FEF0E0',fg:'#D46A00',icon:'📅',title:`Productive Days Gate Failing`,sub:`BSC ${fmt1(b)} ✓ · Only ${p.prodDays}/${p.pNeed||'?'} productive days (${Math.round((p.prodPct||0)*100)}% vs 75%).`};
+  return{bg:'#FCEAE8',fg:'#9B2B1F',icon:'❌',title:'Not Eligible',sub:`BSC ${fmt1(b)} · Prod days ${p.prodDays}/${p.pNeed||'?'}`};
+}
 function renderAdvisor(){
   const name=document.getElementById('adv-pa-select').value;
-  if(!name){document.getElementById('advisor-output').innerHTML='<div class="no-data">Select a PA above to see their rank improvement advice.</div>';return;}
-  const p=allPAs.find(x=>x.name===name);
-  if(!p){return;}
-  const above=allPAs.find(x=>x.rank===p.rank-1);
-  const contribs=METRICS.map(m=>{
-    const curr=Math.min(p[m.key]/m.target,1);
-    const cap=1;
-    const currPts=curr*25;
-    const capPts=25;
-    const gap=capPts-currPts;
-    return{...m,curr,currPts,gap,actual:p[m.key]};
-  });
-  const sorted=[...contribs].sort((a,b)=>b.gap-a.gap);
-  const topFocus=sorted[0];
-  const bscNeeded=above?above.bsc-p.bsc+0.01:null;
 
-  let adviceHtml='';
-  if(above){
-    adviceHtml=`<div class="advice-box">
-      <strong>To move from Rank ${p.rank} → Rank ${p.rank-1}</strong>, you need to beat <strong>${above.name}</strong>'s BSC of <strong>${fmt1(above.bsc)}</strong> (you're at <strong>${fmt1(p.bsc)}</strong>, gap: <strong>+${fmt1(bscNeeded)}</strong> points).<br><br>
-      Best lever: improve <strong>${topFocus.label}</strong>. Currently at <strong>${topFocus.fmt(topFocus.actual)}</strong> vs target <strong>${topFocus.fmt(topFocus.key==='ttfa'?topFocus.target:topFocus.target)}</strong>. This metric alone has <strong>${topFocus.gap.toFixed(1)} BSC points</strong> headroom.
-    </div>`;
-  }else{
-    adviceHtml=`<div class="advice-box"><strong>Rank 1 — No one to beat above.</strong> Focus on maintaining and maxing out all 4 metrics to defend position.</div>`;
+  if(!name){
+    document.getElementById('advisor-output').innerHTML='<div class="no-data">Select a PA above to see their coaching note.</div>';
+  
+    return;
   }
+  const p=allPAs.find(x=>x.name===name);
+  if(!p)return;
 
-  document.getElementById('advisor-output').innerHTML=`
-    <div class="advisor-card">
-      <div class="advisor-headline">${p.name}</div>
-      <div class="advisor-sub">Rank <strong>${p.rank}</strong> · BSC <strong>${fmt1(p.bsc)}</strong> · ${p.eligible?'✓ Eligible':'✗ Not Eligible'} · ${p.incentive>0?fmtINR(p.incentive):'₹0 incentive'}</div>
-      ${contribs.map(m=>{
-        const fillPct=m.curr*100;
-        const gapPct=(1-m.curr)*100;
-        const isFocus=m.key===topFocus.key;
-        const isBest=m.gap<0.5;
-        return`<div class="metric-row">
-          <span class="metric-name">${m.label}${isFocus?'<span class="focus-tag">FOCUS</span>':isBest?'<span class="best-tag">MAXED</span>':''}</span>
-          <div class="metric-bar-wrap">
-            <div class="metric-bar-bg">
-              <div class="metric-bar-fill" style="width:${fillPct}%;background:${isFocus?'#C0392B':isBest?'#0D6E4A':'#1a9a6c'}"></div>
-            </div>
-          </div>
-          <span class="metric-nums">${m.fmt(m.actual)} / ${m.key==='ttfa'?'95%':m.target}</span>
-          <span style="font-size:11px;color:${m.gap>1?'var(--rtext)':'var(--t3)'};min-width:60px;text-align:right">${m.gap>0.1?'-'+m.gap.toFixed(1)+' pts':'+'+m.currPts.toFixed(1)+' ✓'}</span>
-        </div>`;
-      }).join('')}
-      ${adviceHtml}
-      ${above?`<div style="margin-top:12px;font-size:12px;color:var(--t2)">Rank ${p.rank-1}: <strong>${above.name}</strong> · BSC ${fmt1(above.bsc)} · ${above.apm}</div>`:''}
-    </div>`;
+  const st=coachBanner(p);
+  const banner=`<div class="coach-status" style="background:${st.bg};color:${st.fg}"><span class="coach-status-icon">${st.icon}</span><div><div class="coach-status-title">${st.title}</div><div class="coach-status-sub">${st.sub}</div></div></div>`;
+  const baseBsc=bscOf(p);
+  const metricRows=METRICS.map(m=>{
+    const act=p[m.key],tgt=m.target;
+    const frac=Math.min(act/tgt,1),pts=frac*25,gain=(1-frac)*25;
+    const isMax=frac>=1;
+    const newBsc=isMax?baseBsc:baseBsc+gain;
+    const newRank=isMax?p.rank:simRank(p,newBsc);
+    const newInc=getSlab(newRank);
+    const delta=newInc-(p.incentive||0);
+    const col=isMax?'#1A6FB5':frac>=0.8?'#0D6E4A':frac>=0.6?'#B07800':'#C0392B';
+    const gainTag=isMax
+      ?`<span class="impact-gain max">Maxed ✓</span>`
+      :`<span class="impact-gain ${gain>5?'warn':'good'}">+${gain.toFixed(1)} pts → target</span>`;
+    const rankNote=!isMax&&newRank<p.rank
+      ?`<div style="font-size:10px;color:var(--t2);width:100%;padding:2px 0 4px 138px">→ Rank <strong>${p.rank}→${newRank}</strong>${delta>0?' · <strong style="color:#0D6E4A">+'+fmtINR(delta)+'</strong>':''}</div>`:'';
+    return`<div class="impact-row"><span class="impact-metric">${m.label}</span><div class="impact-bar"><div class="impact-fill" style="width:${frac*100}%;background:${col}"></div></div><span class="impact-nums">${m.fmt(act)} / ${m.key==='ttfa'?'95%':tgt}</span>${gainTag}</div>${rankNote}`;
+  }).join('');
+  const imps=METRICS.map(m=>{
+    const frac=Math.min(p[m.key]/m.target,1);if(frac>=1)return null;
+    const gain=(1-frac)*25,nb=baseBsc+gain,nr=simRank(p,nb),ni=getSlab(nr);
+    return{m,gain,nb,nr,ni,delta:ni-(p.incentive||0)};
+  }).filter(Boolean).sort((a,b)=>a.nr-b.nr);
+  let trajHtml='';
+  if(imps.length){
+    const b=imps[0];
+    const pct=Math.round((1-Math.min(p[b.m.key]/b.m.target,1))*100);
+    trajHtml=`<div class="rank-traj"><div class="coach-section-title" style="margin-bottom:8px">🎯 Best Rank Trajectory</div><div class="rank-traj-row"><span class="rank-chip cur">${p.rank}</span><span class="traj-arrow">→</span><span class="rank-chip new">${b.nr}</span><span style="font-size:13px;font-weight:600;color:var(--brand);margin-left:4px">${b.delta>0?fmtINR(b.delta)+' more':b.ni>0?fmtINR(b.ni):'same slab'}</span></div><div style="font-size:12px;color:var(--t2)">Improve <strong>${b.m.label}</strong> to target (${pct}% gap). BSC: <strong>${fmt1(baseBsc)} → ${fmt1(b.nb)}</strong> (+${fmt1(b.gain)} pts)</div></div>`;
+  }
+  let prodHtml='';
+  if(!p.prodElig){
+    const need=Math.max(0,(p.pNeed||Math.ceil(0.75*(p.totalDays||58)))-p.prodDays);
+    const rem=p.remaining||Math.max(0,(p.totalDays||58)-31);
+    const rate=rem>0?(need/rem):Infinity;
+    const imp=need>rem,tight=rate>0.8;
+    const col=imp?'#C0392B':tight?'#D46A00':'#0D6E4A';
+    prodHtml=`<div class="coach-section"><div class="coach-section-title">📅 Productive Days Coach</div><div class="prod-coach"><div class="prod-coach-stat" style="color:${col}">${p.prodDays} of ${p.pNeed||'?'} required (${Math.round((p.prodPct||0)*100)}% — need 75%)</div><div class="prod-coach-pace">${imp?`⚠ ${need} more needed but only ${rem} days remain — gate unreachable.`:tight?`Needs ${need} more in ${rem} remaining — ${rate.toFixed(1)}/day. Challenging.`:`Needs ${need} more in ${rem} remaining — ${rate.toFixed(1)}/day. Achievable.`}</div></div></div>`;
+  }
+  const note=buildCoachNote(p,imps);
+  document.getElementById('advisor-output').innerHTML=`<div class="advisor-card">
+    <div class="advisor-headline">${p.name}</div>
+    <div class="advisor-sub">Rank <strong>${p.rank}</strong> · BSC <strong>${fmt1(p.bsc)}</strong> · ${p.shiftType||'ROW'} · ${p.totalDays||58} WD · ${p.eligible?'✓ Eligible':'✗ Not Eligible'} · ${p.incentive>0?fmtINR(p.incentive):'₹0'}</div>
+    <div class="coach-panel">
+      ${banner}
+      <div class="coach-section"><div class="coach-section-title">📊 Metric Impact — What moves your BSC?</div>${metricRows}</div>
+      ${prodHtml}${trajHtml}
+      <div class="coach-actions"><button class="btn-sm" style="background:#555" onclick="copyCoachNote()">📋 Copy Coaching Note</button></div>
+      <textarea id="coach-note-text" style="display:none">${note}</textarea>
+    </div></div>`;
+}
+function buildCoachNote(p,imps){
+  const lines=[`Coaching Note — ${p.name}`,`${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}`,``,`Rank: ${p.rank} | BSC: ${fmt1(p.bsc)} | ${p.eligible?'Eligible':'Not Eligible'} | Incentive: ${p.incentive>0?fmtINR(p.incentive):'₹0'}`,`Prod Days: ${p.prodDays}/${p.pNeed||'?'} (${Math.round((p.prodPct||0)*100)}%)`,``,'Metrics:'];
+  METRICS.forEach(m=>lines.push(`  • ${m.label}: ${m.fmt(p[m.key])} vs ${m.key==='ttfa'?'95%':m.target} (${Math.round(Math.min(p[m.key]/m.target,1)*100)}%)`));
+  if(imps.length){const b=imps[0];lines.push(`\nTop Opportunity: Improve ${b.m.label} to target → BSC +${fmt1(b.gain)} pts → Rank ${p.rank}→${b.nr}${b.delta>0?' → +'+fmtINR(b.delta):''}`);}
+  if(!p.prodElig){const need=Math.max(0,(p.pNeed||44)-p.prodDays),rem=p.remaining||27;lines.push(`\nProd Days Action: ${need} more in ${rem} remaining (${rem>0?(need/rem).toFixed(1):'-'}/day)`);}
+  return lines.join('\n');
+}
+function copyCoachNote(){
+  const t=document.getElementById('coach-note-text');if(!t)return;
+  navigator.clipboard.writeText(t.value).then(()=>showToast('Coaching note copied')).catch(()=>{t.style.display='block';t.select();document.execCommand('copy');t.style.display='none';showToast('Copied');});
 }
 
 // TL / APM VIEW
@@ -1262,7 +1382,7 @@ function renderTLView(){
     if(!p.apm)return;
     if(!apmGroups[p.apm])apmGroups[p.apm]={name:p.apm,paCnt:0,cc:0,aht:0,ttfa:0,ptt:0,bsc:0};
     const g=apmGroups[p.apm];
-    g.paCnt++;g.cc+=p.cc;g.aht+=p.aht;g.ttfa+=p.ttfa;g.ptt+=p.ptt;g.bsc+=(Number(p.bsc||0)).toFixed(1);
+    g.paCnt++;g.cc+=p.cc;g.aht+=p.aht;g.ttfa+=p.ttfa;g.ptt+=p.ptt;g.bsc+=Number(p.bsc||0);
   });
   let derivedAPM=Object.values(apmGroups).map(g=>({
     ...g,cc:g.cc/g.paCnt,aht:g.aht/g.paCnt,ttfa:g.ttfa/g.paCnt,ptt:g.ptt/g.paCnt,bsc:g.bsc/g.paCnt
@@ -2140,7 +2260,7 @@ function buildD1Html(){
     else if(bsc<=70) rowColor='#E6E691';
 
     return `<tr>
-      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;font-weight:600;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor};text-align:left;white-space:nowrap">
+      <td style="font-family:Calibri,Arial,sans-serif;font-size:9.5pt;font-weight:400;padding:4px 8px;border:2px solid #555;color:#000;background:${rowColor};text-align:left;white-space:nowrap">
         ${p.name}
       </td>
 
@@ -2239,6 +2359,80 @@ function exportD1Excel(){
 }
 
 
+function saveApiKey(){const k=document.getElementById('api-key-input').value.trim();if(k){localStorage.setItem('anthropic-key',k);showToast('API key saved');}}
+function loadApiKey(){const s=localStorage.getItem('anthropic-key'),i=document.getElementById('api-key-input');if(s&&i)i.value=s;}
+async function draftEmail(){
+  const name=document.getElementById('adv-pa-select').value;
+  if(!name){showToast('Select a PA first');return;}
+  const p=allPAs.find(x=>x.name===name);if(!p)return;
+  const key=(document.getElementById('api-key-input').value.trim())||localStorage.getItem('anthropic-key')||'';
+  if(!key){showToast('Enter your Anthropic API key above');return;}
+  const btn=event.target;btn.textContent='Drafting…';btn.disabled=true;
+  const prompt=`Write a coaching email (under 180 words) for ${p.name}, a sales advisor at Emeritus.\nBSC: ${fmt1(p.bsc)} (min gate: 60) | Rank: ${p.rank}/${allPAs.length} | ${p.eligible?'Eligible — '+fmtINR(p.incentive):'NOT ELIGIBLE'}\nProd Days: ${p.prodDays}/${p.pNeed||44} (${Math.round((p.prodPct||0)*100)}%)\nConnected Calls: ${fmt1(p.cc)} vs 21 target | First Call AHT: ${Math.round(p.aht)}s vs 780s | TTFA: ${Math.round((p.ttfa||0)*100)}% vs 95% | Talk Time: ${fmt1(p.ptt)}min vs 145min\n\nAcknowledge one positive, name their single biggest opportunity with one actionable tip, set a weekly expectation. Warm, direct, specific — no generic opener. Email body only.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    if(data.error){showToast('API error: '+data.error.message);return;}
+    document.getElementById('email-draft').textContent=data.content&&data.content[0]?data.content[0].text:'';
+    document.getElementById('email-output').style.display='block';
+    localStorage.setItem('anthropic-key',key);
+  }catch(e){showToast('Error: '+e.message);}
+  finally{btn.textContent='Draft Email ✦';btn.disabled=false;}
+}
+function copyEmailDraft(){const t=document.getElementById('email-draft');if(!t)return;navigator.clipboard.writeText(t.textContent).then(()=>showToast('Email copied'));}
+function generateHuddle(){
+  const data=typeof getD1Filtered==='function'?getD1Filtered():[];
+  if(!data.length){showToast('No D-1 data loaded — upload file with D-1 sheet first');return;}
+  const tot=data.length,date=d1DateLabel||'Today';
+  const bscOf2=p=>p.bscTrend||p.bsc||0;
+  const green=data.filter(p=>bscOf2(p)>=71).length;
+  const yellow=data.filter(p=>bscOf2(p)>=60&&bscOf2(p)<71).length;
+  const red=data.filter(p=>bscOf2(p)<60).length;
+  const avg=k=>data.reduce((s,p)=>s+(p[k]||0),0)/tot;
+  const top3=data.slice(0,3),bot3=[...data].reverse().slice(0,3);
+  const metrics=[
+    {l:'Connected Calls',v:avg('cc').toFixed(1),t:'21',ok:avg('cc')>=21},
+    {l:'First Call AHT',v:Math.round(avg('aht'))+'s',t:'780s',ok:avg('aht')>=780},
+    {l:'Adjusted TTFA',v:Math.round(avg('ttfa')*100)+'%',t:'95%',ok:avg('ttfa')>=0.95},
+    {l:'Pure Talk Time',v:avg('ptt').toFixed(1)+'m',t:'145m',ok:avg('ptt')>=145},
+    {l:'Dials',v:Math.round(avg('dials')),t:'—',ok:true},
+  ];
+  document.getElementById('huddle-output').innerHTML=`<div class="huddle-panel" id="huddle-box">
+    <div class="huddle-title">☀️ Morning Huddle — ${date}</div>
+    <div class="huddle-section">
+      <div class="huddle-sub">Team Snapshot (${tot} PAs)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        <span style="background:#92D050;color:#1a4a00;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:600">🟢 ${green} on track</span>
+        <span style="background:#FFFF99;color:#5a4000;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:600">🟡 ${yellow} watch zone</span>
+        <span style="background:#FFCCCC;color:#7a0000;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:600">🔴 ${red} need attention</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="huddle-section">
+        <div class="huddle-sub">Yesterday Averages vs Target</div>
+        ${metrics.map(m=>`<div class="huddle-row"><span>${m.l}</span><span style="font-weight:600;color:${m.ok?'#0D6E4A':'#C0392B'}">${m.v} <span style="font-weight:400;color:var(--t3);font-size:10px">/ ${m.t}</span> ${m.ok?'✓':'↓'}</span></div>`).join('')}
+      </div>
+      <div>
+        <div class="huddle-section"><div class="huddle-sub">🌟 Stars Yesterday</div>
+          ${top3.map((p,i)=>`<div class="huddle-row"><span><strong>${i+1}. ${p.name}</strong></span><span style="font-weight:700;color:#0D6E4A">${bscOf2(p).toFixed(1)}</span></div>`).join('')}
+        </div>
+        <div class="huddle-section"><div class="huddle-sub">📞 Needs Focus Today</div>
+          ${bot3.map(p=>`<div class="huddle-row"><span>${p.name}</span><span style="font-weight:700;color:#C0392B">${bscOf2(p).toFixed(1)}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="coach-actions">
+      <button class="btn-sm" style="background:#555" onclick="copyHuddle()">📋 Copy for Teams</button>
+    </div>
+  </div>`;
+  document.getElementById('huddle-output').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function copyHuddle(){
+  const box=document.getElementById('huddle-box');if(!box)return;
+  try{const item=new ClipboardItem({'text/html':new Blob([box.outerHTML],{type:'text/html'}),'text/plain':new Blob([box.innerText],{type:'text/plain'})});navigator.clipboard.write([item]).then(()=>showToast('Huddle copied — paste into Teams'));}
+  catch(e){showToast('Use Chrome for rich-text copy');}
+}
+
 function resetDashboard(){
   allPAs=[];trend7D=[];tlData=[];apmData=[];
   document.getElementById('upload-screen').style.display='flex';
@@ -2247,5 +2441,319 @@ function resetDashboard(){
   showTab('incentive',document.querySelector('.tab-btn'));
 }
 </script>
+
+</script>
+
+<!-- ═══ ADDITIVE FEATURES BLOCK ════════════════════════════════ -->
+<style>
+.tab-shell{border:2px solid #c0c0b8;border-radius:8px;overflow:hidden;max-width:1400px;margin:8px auto 16px}
+.tab-nav{border:none!important;border-radius:0!important;border-bottom:2px solid #c0c0b8!important}
+.tab-content{border:none!important;border-radius:0!important;margin:0!important;max-width:100%!important}
+.forecast-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-bottom:16px}
+.fc-card{background:#fff;border:1px solid #e0e0d8;border-radius:8px;padding:11px 13px;position:relative;overflow:hidden}
+.fc-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+.fc-card.green::before{background:#0D6E4A}.fc-card.blue::before{background:#1A6FB5}
+.fc-card.amber::before{background:#B07800}.fc-card.red::before{background:#C0392B}
+.fc-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#9A9A90;margin-bottom:3px}
+.fc-value{font-size:20px;font-weight:700;line-height:1.1;margin-bottom:2px}
+.fc-sub{font-size:11px;color:#5A5A52}
+.pa-status-icon{font-size:12px;margin-right:3px}
+[data-why]{position:relative;cursor:help}
+[data-why]::after{content:attr(data-why);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1F3864;color:#fff;border-radius:6px;padding:6px 10px;font-size:11px;white-space:pre;line-height:1.6;z-index:9999;pointer-events:none;opacity:0;transition:opacity .18s;min-width:180px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+[data-why]:hover::after{opacity:1}
+.rank-pred{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:12px;margin-left:8px}
+.rank-pred.up{background:#E6F4EF;color:#0D6E4A}.rank-pred.down{background:#FCEAE8;color:#9B2B1F}.rank-pred.stable{background:#F4F4F0;color:#5A5A52}
+#forecast-section{margin-bottom:6px}
+#forecast-section .fc-head{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#9A9A90;margin-bottom:8px}
+</style>
+
+<script>
+// ── 1. Tab Shell — run immediately, DOM already exists ────────────
+(function initTabShell(){
+  const dash=document.getElementById('dashboard');
+  if(!dash)return;
+  const nav=dash.querySelector('.tab-nav');
+  const tabs=dash.querySelectorAll('.tab-content');
+  if(!nav||!tabs.length||nav.parentElement.classList.contains('tab-shell'))return;
+  const shell=document.createElement('div');
+  shell.className='tab-shell';
+  dash.insertBefore(shell,nav);
+  shell.appendChild(nav);
+  tabs.forEach(t=>shell.appendChild(t));
+})();
+
+// ── Helpers ───────────────────────────────────────────────────────
+function _fmtINR(n){return '\u20B9'+Math.round(n).toLocaleString('en-IN');}
+function _bscOf(p){
+  if(!window.TARGETS||!window.bscOf)return p.bsc||0;
+  return bscOf(p);
+}
+function _getBestOpp(p){
+  if(!window.METRICS||!window.TARGETS)return null;
+  let best=null;
+  METRICS.forEach(m=>{
+    const frac=Math.min(p[m.key]/m.target,1);
+    const gain=(1-frac)*25;
+    if(gain<0.5)return;
+    const delta=m.key==='cc'?+(m.target-p[m.key]).toFixed(1):
+                m.key==='aht'?'+'+Math.max(0,m.target-p[m.key]).toFixed(0)+'s':
+                m.key==='ttfa'?'+'+Math.round((m.target-Math.min(p[m.key],m.target))*100)+'%':
+                '+'+Math.max(0,m.target-p[m.key]).toFixed(0)+'m';
+    if(!best||gain>best.gain)best={label:m.label,key:m.key,gain,delta};
+  });
+  return best;
+}
+
+// ── 3. Forecast Engine ────────────────────────────────────────────
+function _renderForecast(){
+  if(!window.allPAs||!allPAs.length)return;
+  const tab=document.getElementById('tab-incentive');
+  if(!tab)return;
+  let sec=document.getElementById('forecast-section');
+  if(!sec){sec=document.createElement('div');sec.id='forecast-section';tab.insertBefore(sec,tab.firstChild);}
+  const total=allPAs.length;
+  const elig=allPAs.filter(p=>p.eligible).length;
+  const bscOk=allPAs.filter(p=>p.bscElig).length;
+  const atRisk=allPAs.filter(p=>!p.eligible&&p.bsc>=55&&p.bsc<60).length;
+  const payout=allPAs.reduce((s,p)=>s+(p.incentive||0),0);
+  const tent=allPAs.reduce((s,p)=>s+(p.tentative||0),0);
+  const avg=allPAs.reduce((s,p)=>s+p.bsc,0)/total;
+  sec.innerHTML=`<div class="fc-head">⚡ Team Pulse</div>
+  <div class="forecast-bar">
+    <div class="fc-card green"><div class="fc-label">Eligible PAs</div><div class="fc-value">${elig}<span style="font-size:13px;font-weight:400;color:#5A5A52"> / ${total}</span></div><div class="fc-sub">${Math.round(elig/total*100)}% eligibility rate</div></div>
+    <div class="fc-card blue"><div class="fc-label">Confirmed Payout</div><div class="fc-value" style="font-size:15px">${_fmtINR(payout)}</div><div class="fc-sub">Tentative: ${_fmtINR(tent)}</div></div>
+    <div class="fc-card ${avg>=71?'green':avg>=60?'amber':'red'}"><div class="fc-label">Team Avg BSC</div><div class="fc-value">${avg.toFixed(1)}</div><div class="fc-sub">${Math.round(bscOk/total*100)}% above BSC gate</div></div>
+    <div class="fc-card ${atRisk>0?'amber':'green'}"><div class="fc-label">BSC Gate Risk</div><div class="fc-value">${atRisk}</div><div class="fc-sub">PAs within 5 pts of threshold</div></div>
+  </div>`;
+}
+
+// ── 2 + 1 + 5. Enrich Table ───────────────────────────────────────
+function _enrichTable(){
+  if(!window.allPAs||!allPAs.length)return;
+  const tbody=document.querySelector('#tab-incentive .pa-sticky-table tbody');
+  if(!tbody||!tbody.rows.length)return;
+  const paMap={};
+  allPAs.forEach(p=>paMap[p.name.trim().toLowerCase()]=p);
+  Array.from(tbody.rows).forEach(row=>{
+    const cells=row.cells;
+    if(cells.length<4)return;
+    const nameCell=cells[1];
+    if(!nameCell)return;
+    const pName=(nameCell.innerText||nameCell.textContent||'').replace(/[🏆✅🚨📅⚠️]/gu,'').trim();
+    const p=paMap[pName.toLowerCase()];
+    if(!p)return;
+
+    // Feature 2: Intelligence Icon
+    if(!nameCell.dataset.ic){
+      nameCell.dataset.ic='1';
+      const icon=p.eligible&&p.rank<=7?'🏆':!p.bscElig?'🚨':!p.prodElig?'📅':p.eligible?'✅':'⚠️';
+      const sp=document.createElement('span');sp.className='pa-status-icon';sp.title=icon==='🏆'?'Top Performer':icon==='🚨'?'BSC Gate Failing':icon==='📅'?'Prod Days Failing':icon==='✅'?'Eligible':'At Risk';
+      sp.textContent=icon;
+      nameCell.insertBefore(sp,nameCell.firstChild);
+    }
+
+    // Feature 1: Opportunity Engine — add under incentive amount cell
+    const lastCell=cells[cells.length-1];
+    if(lastCell&&!lastCell.dataset.opp){
+      lastCell.dataset.opp='1';
+      const opp=_getBestOpp(p);
+      if(opp){
+        const d=document.createElement('div');
+        d.style.cssText='font-size:10px;color:#0D6E4A;margin-top:2px;font-weight:600';
+        d.title=`⚡ Opportunity: ${opp.label} +${opp.delta} → +${opp.gain.toFixed(1)} BSC pts`;
+        d.textContent='⚡ '+opp.label.split(' ')[0]+' '+opp.delta;
+        lastCell.appendChild(d);
+      }
+    }
+
+    // Feature 5: Eligibility Tooltip
+    Array.from(cells).forEach(cell=>{
+      if(cell.dataset.tt)return;
+      const txt=(cell.innerText||cell.textContent||'').trim();
+      if(txt.includes('NOT ELIGIBLE')){
+        cell.dataset.tt='1';
+        const why=[];
+        if(!p.bscElig)why.push('• BSC '+p.bsc.toFixed(1)+' (need \u2265 60)');
+        if(!p.prodElig)why.push('• Prod days '+p.prodDays+'/'+(p.pNeed||44)+' (need 75%)');
+        if(p.ttfa<0.9)why.push('• TTFA '+Math.round(p.ttfa*100)+'% — consistency risk');
+        cell.setAttribute('data-why','Not Eligible:\n'+why.join('\n'));
+      }
+    });
+  });
+}
+
+// ── 4. Rank Movement Predictor ────────────────────────────────────
+function _renderRankPredictor(){
+  const existing=document.getElementById('rank-predictor');if(existing)existing.remove();
+  const sel=document.getElementById('adv-pa-select');
+  if(!sel||!sel.value||!window.allPAs||!window.trend7D)return;
+  const pa=allPAs.find(x=>x.name===sel.value);
+  if(!pa)return;
+  const rows=(trend7D||[]).filter(t=>t&&t.name&&t.name.trim().toLowerCase()===pa.name.trim().toLowerCase());
+  if(rows.length<2)return;
+  const recent=rows.slice(-Math.min(3,rows.length)).reduce((s,t)=>s+(t.bsc||0),0)/Math.min(3,rows.length);
+  const older=rows.slice(0,Math.min(3,rows.length)).reduce((s,t)=>s+(t.bsc||0),0)/Math.min(3,rows.length);
+  const mom=recent-older;
+  const badge=mom>2?`<span class="rank-pred up">📈 Trending +${mom.toFixed(1)}</span>`:mom<-2?`<span class="rank-pred down">📉 Trending ${mom.toFixed(1)}</span>`:`<span class="rank-pred stable">— Stable</span>`;
+  const hint=mom>2?'BSC improving — momentum favours rank improvement.':mom<-2?'BSC declining — at risk of rank drop.':'BSC consistent over observed window.';
+  const card=document.createElement('div');card.id='rank-predictor';
+  card.style.cssText='margin-top:12px;background:#fff;border:1px solid #e0e0d8;border-radius:8px;padding:12px 14px';
+  card.innerHTML=`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#9A9A90;margin-bottom:6px">📡 Rank Movement Predictor</div><div style="display:flex;align-items:center;gap:8px;font-size:13px">Current Rank: <strong>${pa.rank}</strong>${badge}</div><div style="font-size:12px;color:#5A5A52;margin-top:4px">${hint}</div>`;
+  const out=document.getElementById('advisor-output');if(out)out.appendChild(card);
+}
+
+// ── PATCH showTab — runs every time a tab is clicked ─────────────
+(function(){
+  const _origShowTab=window.showTab;
+  window.showTab=function(id,btn){
+    _origShowTab.apply(this,arguments);
+    if(id==='incentive'){
+      setTimeout(function(){_renderForecast();_enrichTable();},80);
+    }
+    if(id==='rankadvisor'){
+      setTimeout(_renderRankPredictor,80);
+    }
+  };
+
+  // Also patch the PA select in Rank Advisor
+  const sel=document.getElementById('adv-pa-select');
+  if(sel){
+    sel.addEventListener('change',function(){
+      setTimeout(_renderRankPredictor,100);
+    });
+  }
+
+  // Run once at startup for initial incentive tab (it's active by default after upload)
+  const _origRecalc=window.recalculate;
+  window.recalculate=function(){
+    _origRecalc.apply(this,arguments);
+    setTimeout(function(){_renderForecast();_enrichTable();},100);
+  };
+})();
+</script>
+<!-- ═══ END ADDITIVE FEATURES BLOCK ═════════════════════════════ -->
+
+<!-- ═══ PATCH BLOCK 2 ═══════════════════════════════════════════ -->
+<style>
+/* JS tooltip override */
+#js-tooltip{position:fixed;background:#1F3864;color:#fff;border-radius:7px;padding:8px 12px;font-size:11.5px;line-height:1.7;z-index:99999;pointer-events:none;white-space:pre;box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:260px;display:none}
+</style>
+<div id="js-tooltip"></div>
+<script>
+// ── FIX 1: showPATrend inline below clicked row ───────────────────
+(function(){
+  const _orig=window.showPATrend;
+  window.showPATrend=function(name,row){
+    // Clear any existing inline detail
+    const prev=document.getElementById('pa-trend-inline');
+    const wasForThis=prev&&prev._src===row;
+    if(prev)prev.remove();
+    // Clear bottom wrap
+    const wrap=document.getElementById('t7-metric-wrap');
+    if(wrap)wrap.innerHTML='<div class="section-title" style="margin-top:4px">Select a PA row above to see daily metric breakdown.</div>';
+    if(wasForThis)return; // toggle off if same row clicked again
+
+    // Highlight row
+    document.querySelectorAll('#t7-tbody tr').forEach(r=>r.style.background='');
+    row.style.background='#EBF4F0';
+
+    // Run original (it fills t7-metric-wrap)
+    _orig.apply(this,arguments);
+
+    // Move t7-metric-wrap content into an inline row
+    if(!wrap||!wrap.querySelector('.tbl-wrap'))return;
+    const colCount=row.cells.length||12;
+    const inlineRow=document.createElement('tr');
+    inlineRow.id='pa-trend-inline';
+    inlineRow._src=row;
+    const td=document.createElement('td');
+    td.colSpan=colCount;
+    td.style.cssText='padding:0;background:#f8fdf9;border-bottom:2px solid #b3d9c9';
+    td.innerHTML='<div style="padding:12px 16px">'+wrap.innerHTML+'</div>';
+    inlineRow.appendChild(td);
+    row.parentNode.insertBefore(inlineRow,row.nextSibling);
+    wrap.innerHTML='<div class="section-title" style="margin-top:4px;color:var(--t3)">↑ See detail above</div>';
+  };
+})();
+
+// ── FIX 2 + 3: Huddle toggle + filter reactivity ─────────────────
+(function(){
+  const _orig=window.generateHuddle;
+  window.generateHuddle=function(){
+    const out=document.getElementById('huddle-output');
+    if(document.getElementById('huddle-box')){
+      if(out)out.innerHTML=''; return; // toggle off
+    }
+    _orig.apply(this,arguments);
+  };
+
+  // Re-render huddle when D-1 filters change (only if already visible)
+  function reHuddle(){
+    if(document.getElementById('huddle-box')){
+      const out=document.getElementById('huddle-output');
+      if(out)out.innerHTML='';
+      if(typeof _orig==='function')_orig();
+    }
+  }
+  // Hook D-1 filter checkboxes — use MutationObserver on the filter panels
+  const d1TLPanel=document.getElementById('ms-d1-tl-list');
+  const d1APMPanel=document.getElementById('ms-d1-apm-list');
+  function watchPanel(panel){
+    if(!panel)return;
+    panel.addEventListener('change',function(){setTimeout(reHuddle,150);});
+  }
+  watchPanel(d1TLPanel);
+  watchPanel(d1APMPanel);
+  // Also watch the Select All checkboxes
+  const tlAll=document.getElementById('msa-d1-tl');
+  const apmAll=document.getElementById('msa-d1-apm');
+  if(tlAll)tlAll.addEventListener('change',function(){setTimeout(reHuddle,150);});
+  if(apmAll)apmAll.addEventListener('change',function(){setTimeout(reHuddle,150);});
+})();
+
+// ── FIX 4: JS-positioned tooltip for eligibility ─────────────────
+(function(){
+  const tip=document.getElementById('js-tooltip');
+  if(!tip)return;
+  let currentTarget=null;
+
+  document.addEventListener('mouseover',function(e){
+    const el=e.target.closest('[data-why]');
+    if(!el||el===currentTarget)return;
+    currentTarget=el;
+    tip.textContent=el.getAttribute('data-why');
+    tip.style.display='block';
+    positionTip(e);
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!currentTarget)return;
+    positionTip(e);
+  });
+  document.addEventListener('mouseout',function(e){
+    const el=e.target.closest('[data-why]');
+    if(!el)return;
+    if(!el.contains(e.relatedTarget)){
+      tip.style.display='none';
+      currentTarget=null;
+    }
+  });
+  function positionTip(e){
+    const pad=12;
+    let x=e.clientX+pad,y=e.clientY-tip.offsetHeight-pad;
+    if(x+tip.offsetWidth>window.innerWidth)x=e.clientX-tip.offsetWidth-pad;
+    if(y<0)y=e.clientY+pad;
+    tip.style.left=x+'px';
+    tip.style.top=y+'px';
+  }
+
+  // Also fix: make sure data-why is set on cells correctly
+  // The existing CSS [data-why]::after approach had table overflow clipping issues
+  // We now use JS tooltip so remove the CSS pseudo-element to avoid double tooltips
+  const styleKiller=document.createElement('style');
+  styleKiller.textContent='[data-why]::after{display:none!important}';
+  document.head.appendChild(styleKiller);
+})();
+</script>
+<!-- ═══ END PATCH BLOCK 2 ════════════════════════════════════════ -->
 </body>
 </html>
