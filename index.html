@@ -408,6 +408,8 @@ table, th, td, div, span, p {
   max-width:1400px!important;
 }
 </style>
+
+
 </head>
 <body style="font-family:Calibri, Arial, sans-serif;font-size:11pt;">
 <div class="topbar">
@@ -746,7 +748,7 @@ table, th, td, div, span, p {
 <script>
 const SLABS=[{from:1,to:7,amount:120000},{from:8,to:14,amount:100000},{from:15,to:23,amount:80000},{from:24,to:33,amount:70000},{from:34,to:44,amount:60000},{from:45,to:56,amount:40000},{from:57,to:69,amount:30000},{from:70,to:77,amount:15000},{from:78,to:Infinity,amount:0}];
 const TARGETS={cc:21,aht:780,ttfa:0.95,ptt:145};
-const METRICS=[{key:'cc',label:'Connected Calls',target:21,fmt:v=>Number(v).toFixed(1)},{key:'aht',label:'AHT First Call (s)',target:780,fmt:v=>Number(v).toFixed(1)},{key:'ttfa',label:'Adjusted TTFA',target:0.95,fmt:v=>Math.round(v*100)+'%'},{key:'ptt',label:'Pure Talk Time (min)',target:145,fmt:v=>Number(v).toFixed(1)}];let allPAs=[], trend7D=[], tlData=[], apmData=[], d1Stats=[], d1DateLabel='';
+const METRICS=[{key:'cc',label:'Connected Calls',target:21,fmt:v=>Math.round(v)},{key:'aht',label:'AHT First Call (s)',target:780,fmt:v=>Math.round(v)},{key:'ttfa',label:'Adjusted TTFA',target:0.95,fmt:v=>Math.round(v*100)+'%'},{key:'ptt',label:'Pure Talk Time (min)',target:145,fmt:v=>Math.round(v)}];let allPAs=[], trend7D=[], tlData=[], apmData=[], d1Stats=[], d1DateLabel='';
 let sortStates={incentive:{col:'rank',asc:true}};
 
 function sn(v){const n=parseFloat(v);return isNaN(n)?0:n;}
@@ -885,7 +887,7 @@ function parseAll(paRows,t7Rows,tlRows,d1Rows,fileName){
   const tlNames=[...new Set(allPAs.map(p=>p.tl).filter(Boolean))].sort();
   const paApmNames=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
   populateMS('ms-ir-tl',tlNames,'renderIncentiveTable()');
-  populateMS('ms-tl-sel',tlNames,'renderTLView()');
+  populateMS('ms-tl-sel',tlNames,'cascadeTLAPM()');
   populateMS('ms-apm-sel',paApmNames,'renderTLView()');
   populateMS('ms-sum-tl',tlNames,'renderSummary()');
   populateMS('ms-sum-apm',apms,'renderSummary()');
@@ -925,6 +927,13 @@ function parseAll(paRows,t7Rows,tlRows,d1Rows,fileName){
   }
 
 
+  // Re-populate D-1 filters from d1Stats own values (avoids name mismatch with allPAs)
+  if(d1Stats&&d1Stats.length){
+    const d1TLs=[...new Set(d1Stats.map(p=>p.tl).filter(Boolean))].sort();
+    const d1APMs=[...new Set(d1Stats.map(p=>p.apm).filter(Boolean))].sort();
+    populateMS('ms-d1-tl',d1TLs,'renderD1Stats()');
+    populateMS('ms-d1-apm',d1APMs,'renderD1Stats()');
+  }
   recalculate();
   document.getElementById('upload-screen').style.display='none';
   document.getElementById('dashboard').style.display='block';
@@ -1258,7 +1267,7 @@ function renderAtRisk(){
 
 function getWeakestMetric(p){
   const contribs=[
-    {key:'cc',label:'Connected Calls',actual:fmt1(p.cc),target:TARGETS.cc,contrib:Math.min(p.cc/TARGETS.cc,1)*25},
+    {key:'cc',label:'Connected Calls',actual:Math.round(p.cc),target:TARGETS.cc,contrib:Math.min(p.cc/TARGETS.cc,1)*25},
     {key:'aht',label:'AHT First Call',actual:Math.round(p.aht)+'s',target:TARGETS.aht+'s',contrib:Math.min(p.aht/TARGETS.aht,1)*25},
     {key:'ttfa',label:'Adjusted TTFA',actual:Math.round(p.ttfa*100)+'%',target:'95%',contrib:Math.min(p.ttfa/TARGETS.ttfa,1)*25},
     {key:'ptt',label:'Pure Talk Time',actual:fmt1(p.ptt)+'min',target:TARGETS.ptt+'min',contrib:Math.min(p.ptt/TARGETS.ptt,1)*25},
@@ -1283,8 +1292,8 @@ function coachBanner(p){
   if(el&&b>=71)return{bg:'#E6F4EF',fg:'#0D6E4A',icon:'✅',title:`Eligible — ${sl}`,sub:`Rank ${p.rank} · BSC ${fmt1(b)} · ${p.rank<=7?'Top slab!':'Improve metrics to climb ranks.'}`};
   if(el&&b>=60)return{bg:'#FEF7E0',fg:'#B07800',icon:'⚠️',title:`Eligible but BSC gate is close`,sub:`Only ${fmt1(b-60)} pts above the 60-pt floor. BSC ${fmt1(b)} — protect it.`};
   if(!bb)return{bg:'#FCEAE8',fg:'#9B2B1F',icon:'🚨',title:`BSC Gate Failing — ${fmt1(60-b)} pts below 60`,sub:`Current BSC: ${fmt1(b)}. See metric gaps below.`};
-  if(!bp)return{bg:'#FEF0E0',fg:'#D46A00',icon:'📅',title:`Productive Days Gate Failing`,sub:`BSC ${fmt1(b)} ✓ · Only ${p.prodDays}/${p.pNeed||'?'} productive days (${Math.round((p.prodPct||0)*100)}% vs 75%).`};
-  return{bg:'#FCEAE8',fg:'#9B2B1F',icon:'❌',title:'Not Eligible',sub:`BSC ${fmt1(b)} · Prod days ${p.prodDays}/${p.pNeed||'?'}`};
+  if(!bp)return{bg:'#FEF0E0',fg:'#D46A00',icon:'📅',title:`Productive Days Gate Failing`,sub:`BSC ${fmt1(b)} ✓ · Only ${p.prodDays}/${p.pNeed||Math.ceil(0.75*(p.totalDays||58))} productive days (${Math.round((p.prodPct||0)*100)}% vs 75%).`};
+  return{bg:'#FCEAE8',fg:'#9B2B1F',icon:'❌',title:'Not Eligible',sub:`BSC ${fmt1(b)} · Prod days ${p.prodDays}/${p.pNeed||Math.ceil(0.75*(p.totalDays||58))}`};
 }
 function renderAdvisor(){
   const name=document.getElementById('adv-pa-select').value;
@@ -1296,6 +1305,7 @@ function renderAdvisor(){
   }
   const p=allPAs.find(x=>x.name===name);
   if(!p)return;
+  window._curAdvisorPA=p;
 
   const st=coachBanner(p);
   const banner=`<div class="coach-status" style="background:${st.bg};color:${st.fg}"><span class="coach-status-icon">${st.icon}</span><div><div class="coach-status-title">${st.title}</div><div class="coach-status-sub">${st.sub}</div></div></div>`;
@@ -1325,7 +1335,81 @@ function renderAdvisor(){
   if(imps.length){
     const b=imps[0];
     const pct=Math.round((1-Math.min(p[b.m.key]/b.m.target,1))*100);
-    trajHtml=`<div class="rank-traj"><div class="coach-section-title" style="margin-bottom:8px">🎯 Best Rank Trajectory</div><div class="rank-traj-row"><span class="rank-chip cur">${p.rank}</span><span class="traj-arrow">→</span><span class="rank-chip new">${b.nr}</span><span style="font-size:13px;font-weight:600;color:var(--brand);margin-left:4px">${b.delta>0?fmtINR(b.delta)+' more':b.ni>0?fmtINR(b.ni):'same slab'}</span></div><div style="font-size:12px;color:var(--t2)">Improve <strong>${b.m.label}</strong> to target (${pct}% gap). BSC: <strong>${fmt1(baseBsc)} → ${fmt1(b.nb)}</strong> (+${fmt1(b.gain)} pts)</div></div>`;
+    const inSlab=p.incentive>0;
+    const T=window.TARGETS||{cc:21,aht:780,ttfa:0.95,ptt:145};
+    const remaining=p.remaining||Math.max(0,(p.totalDays||58)-31);
+    const prodDays=p.prodDays||0;
+    const pNeed=p.pNeed||Math.ceil(0.75*(p.totalDays||58));
+
+    // Daily minimum metrics to hit b.nb (simulated BSC after best improvement)
+    // TTFA floor at 93% (0.93) = 24.5 pts contribution
+    const ttfaFloor=0.93;
+    const ttfaContrib=Math.min(ttfaFloor/T.ttfa,1)*25; // ~24.5 pts
+    const remaining3=(b.nb-ttfaContrib); // pts needed from CC+AHT+PTT
+    const fracEach=Math.max(0,remaining3)/(3*25);
+    const minCC=Math.ceil(fracEach*T.cc*10)/10;
+    const minAHT=Math.ceil(fracEach*T.aht);
+    const minPTT=Math.ceil(fracEach*T.ptt*10)/10;
+    const ccPerDay=p.cc;   // p.cc is already a daily average (QTD avg CC/day)
+    const pttPerDay=p.ptt; // p.ptt is already a daily average (QTD avg PTT/day)
+
+    // Plain-English reason
+    const curSlabTxt=(()=>{
+      if(inSlab)return`currently in ₹${(p.incentive/1000).toFixed(0)}K slab`;
+      if(!p.prodElig){
+        const pn=p.pNeed||Math.ceil(0.75*(p.totalDays||58));
+        const gap=Math.max(0,pn-p.prodDays);
+        const rem=p.remaining||Math.max(0,(p.totalDays||58)-31);
+        const rate=rem>0?(gap/rem).toFixed(1):'∞';
+        if(gap>rem)return`productive days gate — <strong>cannot be met</strong>: needs ${gap} more days but only ${rem} working days remain`;
+        return`currently ${p.prodDays}/${pn} productive days — needs ${gap} more in ${rem} remaining (${rate}/day to qualify)`;
+      }
+      if(!p.bscElig)return`ineligible — BSC gate not met (BSC ${fmt1(p.bsc)} below 60)`;
+      return`rank ${p.rank} has no slab (rank 78+ earns ₹0)`;
+    })();
+    const newSlabTxt=b.ni>0?`would qualify for ₹${(b.ni/1000).toFixed(0)}K slab`:'no additional slab change';
+    const whyItMoves=`Your BSC of ${fmt1(baseBsc)} places you at Rank ${p.rank} (${curSlabTxt}). Your biggest drag is <strong>${b.m.label}</strong> — ${pct}% below target. Bringing it to target alone pushes BSC to <strong>${fmt1(b.nb)}</strong>, moving you to Rank <strong>${b.nr}</strong> which ${newSlabTxt}.`;
+
+    const metricRows=[
+      {name:'Connected Calls',min:Math.ceil(minCC),unit:'/day',now:ccPerDay,key:'cc'},
+      {name:'First Call AHT',min:minAHT,unit:'s',now:p.aht,key:'aht'},
+      {name:'TTFA (floor — your control)',min:93,unit:'%',now:Math.round((p.ttfa||0)*100),key:'ttfa',easy:true},
+      {name:'Pure Talk Time',min:Math.ceil(minPTT),unit:'min/day',now:pttPerDay,key:'ptt'},
+    ].map(m=>{
+      const ok=m.now>=m.min;
+      const gap=ok?'':` (need +${m.key==='ttfa'?(m.min-m.now).toFixed(0)+'pp':m.key==='aht'?(m.min-m.now).toFixed(0)+'s':m.key==='cc'?(Math.ceil(m.min-m.now))+m.unit:(m.min-m.now).toFixed(1)+m.unit})`;
+      return`<tr style="border-bottom:.5px solid #f0f0e8">
+        <td style="padding:5px 8px;font-size:12px;font-weight:600;color:${m.easy?'#0D6E4A':'var(--text)'}">${m.easy?'✦ ':''}${m.name}</td>
+        <td style="padding:5px 8px;text-align:center;font-size:13px;font-weight:700;color:${ok?'#0D6E4A':'#C0392B'}">${m.min}${m.unit==='%'?'%':''}</td>
+        <td style="padding:5px 8px;text-align:center;font-size:12px;color:var(--t2)">${typeof m.now==='number'?m.key==='cc'||m.key==='ptt'?m.now.toFixed(1):m.key==='aht'?Math.round(m.now):m.now.toFixed(0):m.now}${m.key==='ttfa'?'%':' '+m.unit}<span style="font-size:9px;color:#bbb"> avg</span></td>
+        <td style="padding:5px 8px;font-size:11px;color:${ok?'#0D6E4A':'#9B2B1F'}">${ok?'✓ On track':'↑ Gap'+gap}</td>
+      </tr>`;
+    }).join('');
+
+    trajHtml=`<div class="rank-traj" style="border-radius:8px;padding:14px 16px;margin-bottom:12px">
+      <div class="coach-section-title" style="margin-bottom:8px">🎯 Your Rank Trajectory — What Would Actually Move You</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span class="rank-chip cur">${p.rank}</span>
+        <span class="traj-arrow">→</span>
+        <span class="rank-chip new">${b.nr}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--brand)">${b.delta>0?'+'+fmtINR(b.delta)+' incentive':b.ni>0?fmtINR(b.ni):''}</span>
+      </div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7;margin-bottom:12px">${whyItMoves}</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--t3);margin-bottom:6px">Minimum values needed every remaining working day (${remaining} days left)</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f4f4f0">
+          <th style="padding:5px 8px;font-size:10px;font-weight:700;color:var(--t3);text-align:left">METRIC</th>
+          <th style="padding:5px 8px;font-size:10px;font-weight:700;color:var(--t3);text-align:center">MINIMUM</th>
+          <th style="padding:5px 8px;font-size:10px;font-weight:700;color:var(--t3);text-align:center">YOUR AVG</th>
+          <th style="padding:5px 8px;font-size:10px;font-weight:700;color:var(--t3);text-align:left">STATUS</th>
+        </tr></thead>
+        <tbody>${metricRows}</tbody>
+      </table>
+      <div style="font-size:11px;color:var(--t3);margin-top:8px;padding-top:6px;border-top:.5px solid #e8e8e0">
+        ✦ TTFA is fully in your control — target every connected call within 2 hours. Set as 93% floor (realistic daily average).
+        Pushing CC may reduce AHT — if AHT drops, PTT usually follows. Monitor all four together.
+      </div>
+    </div>`;
   }
   let prodHtml='';
   if(!p.prodElig){
@@ -1334,7 +1418,7 @@ function renderAdvisor(){
     const rate=rem>0?(need/rem):Infinity;
     const imp=need>rem,tight=rate>0.8;
     const col=imp?'#C0392B':tight?'#D46A00':'#0D6E4A';
-    prodHtml=`<div class="coach-section"><div class="coach-section-title">📅 Productive Days Coach</div><div class="prod-coach"><div class="prod-coach-stat" style="color:${col}">${p.prodDays} of ${p.pNeed||'?'} required (${Math.round((p.prodPct||0)*100)}% — need 75%)</div><div class="prod-coach-pace">${imp?`⚠ ${need} more needed but only ${rem} days remain — gate unreachable.`:tight?`Needs ${need} more in ${rem} remaining — ${rate.toFixed(1)}/day. Challenging.`:`Needs ${need} more in ${rem} remaining — ${rate.toFixed(1)}/day. Achievable.`}</div></div></div>`;
+    prodHtml=`<div class="coach-section"><div class="coach-section-title">📅 Productive Days Coach</div><div class="prod-coach"><div class="prod-coach-stat" style="color:${col}">${p.prodDays} of ${p.pNeed||Math.ceil(0.75*(p.totalDays||58))} required (${Math.round((p.prodPct||0)*100)}% — need 75%)</div><div class="prod-coach-pace">${imp?`⚠ ${need} more needed but only ${rem} days remain — gate unreachable.`:tight?`Needs ${need} more in ${rem} remaining — ${rate.toFixed(1)}/day. Challenging.`:`Needs ${need} more in ${rem} remaining — ${rate.toFixed(1)}/day. Achievable.`}</div></div></div>`;
   }
   const note=buildCoachNote(p,imps);
   document.getElementById('advisor-output').innerHTML=`<div class="advisor-card">
@@ -1344,12 +1428,12 @@ function renderAdvisor(){
       ${banner}
       <div class="coach-section"><div class="coach-section-title">📊 Metric Impact — What moves your BSC?</div>${metricRows}</div>
       ${prodHtml}${trajHtml}
-      <div class="coach-actions"><button class="btn-sm" style="background:#555" onclick="copyCoachNote()">📋 Copy Coaching Note</button></div>
+      <div class="coach-actions"><button class="btn-sm" style="background:#555" onclick="copyCoachNote()">📋 Copy Coaching Note</button><button class=\"btn-sm\" style=\"background:#1D6F42\" onclick=\"copyAdvisorExcel()\">⬇ Export Excel</button></div>
       <textarea id="coach-note-text" style="display:none">${note}</textarea>
     </div></div>`;
 }
 function buildCoachNote(p,imps){
-  const lines=[`Coaching Note — ${p.name}`,`${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}`,``,`Rank: ${p.rank} | BSC: ${fmt1(p.bsc)} | ${p.eligible?'Eligible':'Not Eligible'} | Incentive: ${p.incentive>0?fmtINR(p.incentive):'₹0'}`,`Prod Days: ${p.prodDays}/${p.pNeed||'?'} (${Math.round((p.prodPct||0)*100)}%)`,``,'Metrics:'];
+  const lines=[`Coaching Note — ${p.name}`,`${new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}`,``,`Rank: ${p.rank} | BSC: ${fmt1(p.bsc)} | ${p.eligible?'Eligible':'Not Eligible'} | Incentive: ${p.incentive>0?fmtINR(p.incentive):'₹0'}`,`Prod Days: ${p.prodDays}/${p.pNeed||Math.ceil(0.75*(p.totalDays||58))} (${Math.round((p.prodPct||0)*100)}%)`,``,'Metrics:'];
   METRICS.forEach(m=>lines.push(`  • ${m.label}: ${m.fmt(p[m.key])} vs ${m.key==='ttfa'?'95%':m.target} (${Math.round(Math.min(p[m.key]/m.target,1)*100)}%)`));
   if(imps.length){const b=imps[0];lines.push(`\nTop Opportunity: Improve ${b.m.label} to target → BSC +${fmt1(b.gain)} pts → Rank ${p.rank}→${b.nr}${b.delta>0?' → +'+fmtINR(b.delta):''}`);}
   if(!p.prodElig){const need=Math.max(0,(p.pNeed||44)-p.prodDays),rem=p.remaining||27;lines.push(`\nProd Days Action: ${need} more in ${rem} remaining (${rem>0?(need/rem).toFixed(1):'-'}/day)`);}
@@ -1365,18 +1449,36 @@ function rankEntities(list){
   return [...list].sort((a,b)=>b.bsc-a.bsc).map((x,i)=>({...x,rank:i+1}));
 }
 
+// Called ONLY when TL filter changes — cascades APM dropdown
+function cascadeTLAPM(){
+  const selTL=getSelectedMS('ms-tl-sel');
+  const norm=s=>(s||'').trim().toLowerCase();
+  const allAPMs=[...new Set(allPAs.map(p=>p.apm).filter(Boolean))].sort();
+  const apmsToShow=selTL.length
+    ?[...new Set(allPAs.filter(p=>selTL.some(s=>norm(s)===norm(p.tl))).map(p=>p.apm).filter(Boolean))].sort()
+    :allAPMs;
+  const apmList=document.getElementById('ms-apm-sel-list');
+  if(apmList){
+    apmList.innerHTML=apmsToShow.map(a=>`<label class="ms-item"><input type="checkbox" value="${a}" checked onchange="msItemChange('ms-apm-sel');renderTLView()"> ${a}</label>`).join('');
+    msUpdateTrigger('ms-apm-sel');
+  }
+  renderTLView();
+}
+
 function renderTLView(){
   renderAPMTLMap();
   const selTL =getSelectedMS('ms-tl-sel');
   const selAPM=getSelectedMS('ms-apm-sel');
 
-  // ── Filter TL cards (from TL sheet) ────────────────────────────
-  const filteredTL=selTL.length?tlData.filter(t=>selTL.includes(t.name)):tlData;
+  const norm=s=>(s||'').trim().toLowerCase();
 
-  // ── Derive APM performance from allPAs (avoids name mismatch) ──
-  // Step 1: which PAs to include (filter by selected TL if any)
-  const paForAPM=selTL.length?allPAs.filter(p=>selTL.includes(p.tl)):allPAs;
-  // Step 2: group by APM and compute averages
+  // ── Filter TL cards — normalised compare ────────────────────────
+  const filteredTL=selTL.length
+    ?tlData.filter(t=>selTL.some(s=>norm(s)===norm(t.name)))
+    :tlData;
+
+  // ── Derive APM performance from allPAs ──────────────────────────
+  const paForAPM=selTL.length?allPAs.filter(p=>selTL.some(s=>norm(s)===norm(p.tl))):allPAs;
   const apmGroups={};
   paForAPM.forEach(p=>{
     if(!p.apm)return;
@@ -1387,7 +1489,6 @@ function renderTLView(){
   let derivedAPM=Object.values(apmGroups).map(g=>({
     ...g,cc:g.cc/g.paCnt,aht:g.aht/g.paCnt,ttfa:g.ttfa/g.paCnt,ptt:g.ptt/g.paCnt,bsc:g.bsc/g.paCnt
   }));
-  // Step 3: apply APM multi-select filter
   if(selAPM.length) derivedAPM=derivedAPM.filter(a=>selAPM.includes(a.name));
 
   const rankedTL=rankEntities(filteredTL);
@@ -1433,7 +1534,7 @@ function renderTLView(){
 
 // ── MULTI-SELECT FUNCTIONS ─────────────────────────────────────────
 function getRefreshFn(id){
-  const map={'ms-f-apm':'renderIncentiveTable()','ms-t7-apm':'renderTrend()','ms-ar-apm':'renderAtRisk()','ms-sum-apm':'renderSummary()','ms-sum-tl':'renderSummary()','ms-apm-sel':'renderTLView()','ms-tl-sel':'renderTLView()','ms-ir-tl':'renderIncentiveTable()'};
+  const map={'ms-f-apm':'renderIncentiveTable()','ms-t7-apm':'renderTrend()','ms-ar-apm':'renderAtRisk()','ms-sum-apm':'renderSummary()','ms-sum-tl':'renderSummary()','ms-apm-sel':'renderTLView()','ms-tl-sel':'cascadeTLAPM()','ms-ir-tl':'renderIncentiveTable()','ms-d1-tl':'renderD1Stats()','ms-d1-apm':'renderD1Stats()'};
   return map[id]||'';
 }
 
@@ -1594,14 +1695,42 @@ function buildPAHtml(filters){
   const totalDays=(parseInt(document.getElementById('s-days-row').value)||58);
   const refreshTxt=document.getElementById('refresh-time').textContent;
   const filteredPAs=getFilteredPAs(f);
-  const apmsInView=[...new Set(filteredPAs.map(p=>p.apm).filter(Boolean))].sort();
   let rows='';
-  apmsInView.forEach(apm=>{
-    const pas=filteredPAs.filter(p=>p.apm===apm).sort((a,b)=>a.rank-b.rank);
-    if(!pas.length)return;
-    const payout=pas.reduce((s,p)=>s+p.incentive,0);
-    rows+=`<tr><td colspan="15" style="background:#0D6E4A;color:white;font-weight:700;font-size:13px;padding:7px 10px">APM: ${apm} &nbsp;|&nbsp; ${pas.length} PAs &nbsp;|&nbsp; Payout: ₹${payout.toLocaleString('en-IN')}</td></tr>`;
-    pas.forEach((p,i)=>{
+  if(f.apms&&f.apms.length>0){
+    // APM filter active → group by APM with headers
+    const apmsInView=[...new Set(filteredPAs.map(p=>p.apm).filter(Boolean))].sort();
+    apmsInView.forEach(apm=>{
+      const pas=filteredPAs.filter(p=>p.apm===apm).sort((a,b)=>a.rank-b.rank);
+      if(!pas.length)return;
+      const payout=pas.reduce((s,p)=>s+p.incentive,0);
+      rows+=`<tr><td colspan="15" style="background:#0D6E4A;color:white;font-weight:700;font-size:13px;padding:7px 10px">APM: ${apm} &nbsp;|&nbsp; ${pas.length} PAs &nbsp;|&nbsp; Payout: ₹${payout.toLocaleString('en-IN')}</td></tr>`;
+      pas.forEach((p,i)=>{
+      const c=rowBg(p);
+      const ccPct=Math.min(p.cc/21,1);const ahtPct=Math.min(p.aht/780,1);const ttfaPct=Math.min(p.ttfa/0.95,1);const pttPct=Math.min(p.ptt/145,1);
+      rows+=`<tr style="background:${c.bg};color:#000">
+        <td style="text-align:center;font-weight:600;color:#000">${i+1}</td>
+        <td style="font-weight:700;color:#000">${p.name}</td>
+        <td style="text-align:center;color:#000">${p.prodDays}</td>
+        <td style="text-align:center;color:#000">${Math.round(p.cc)}</td>
+        <td style="text-align:center;color:#000">${Math.round(ccPct*100)}%</td>
+        <td style="text-align:center;color:#000">${Math.round(p.aht)}</td>
+        <td style="text-align:center;color:#000">${Math.round(ahtPct*100)}%</td>
+        <td style="text-align:center;color:#000">${Math.round(p.ttfa*100)}%</td>
+        <td style="text-align:center;color:#000">${Math.round(ttfaPct*100)}%</td>
+        <td style="text-align:center;color:#000">${Math.round(p.ptt)}</td>
+        <td style="text-align:center;color:#000">${Math.round(pttPct*100)}%</td>
+        <td style="text-align:center;font-weight:700;color:#000">${Number(p.bsc).toFixed(1)}</td>
+        <td style="text-align:center;color:#000">${p.callsTB>0?Math.round(p.callsTB):''}</td>
+        <td style="text-align:center;font-weight:700;color:#000">${p.rank}</td>
+        <td style="text-align:center;font-weight:700;color:#000">${p.incentive>0?'INR '+p.incentive.toLocaleString('en-IN'):'INR 0'}</td>
+      </tr>`;
+      });
+      rows+=`<tr style="background:#E8F4EF"><td colspan="12" style="text-align:right;font-weight:600;padding:5px 10px">APM Total Payout →</td><td colspan="3" style="font-weight:700;color:#0D6E4A;padding:5px 10px">₹${payout.toLocaleString('en-IN')}</td></tr>`;
+      rows+=`<tr><td colspan="15" style="height:6px"></td></tr>`;
+    });
+  }else{
+    // No APM filter → flat list sorted by rank, no grouping
+    filteredPAs.slice().sort((a,b)=>a.rank-b.rank).forEach((p,i)=>{
       const c=rowBg(p);
       const ccPct=Math.min(p.cc/21,1);const ahtPct=Math.min(p.aht/780,1);const ttfaPct=Math.min(p.ttfa/0.95,1);const pttPct=Math.min(p.ptt/145,1);
       rows+=`<tr style="background:${c.bg};color:#000">
@@ -1622,9 +1751,10 @@ function buildPAHtml(filters){
         <td style="text-align:center;font-weight:700;color:#000">${p.incentive>0?'INR '+p.incentive.toLocaleString('en-IN'):'INR 0'}</td>
       </tr>`;
     });
-    rows+=`<tr style="background:#E8F4EF"><td colspan="12" style="text-align:right;font-weight:600;padding:5px 10px">APM Total Payout →</td><td colspan="3" style="font-weight:700;color:#0D6E4A;padding:5px 10px">₹${payout.toLocaleString('en-IN')}</td></tr>`;
-    rows+=`<tr><td colspan="15" style="height:6px"></td></tr>`;
-  });
+    // Grand total row
+    const grandPayout=filteredPAs.reduce((s,p)=>s+p.incentive,0);
+    rows+=`<tr style="background:#1F3864;color:#fff"><td colspan="12" style="text-align:right;font-weight:700;padding:6px 10px;color:#fff">Total Payout →</td><td colspan="3" style="font-weight:700;padding:6px 10px;color:#fff">₹${grandPayout.toLocaleString('en-IN')}</td></tr>`;
+  }
   const filterNote=[
     f.apms&&f.apms.length?'APMs: '+f.apms.join(', '):'',
     f.eligF==='yes'?'Eligible only':f.eligF==='no'?'Not Eligible only':'',
@@ -2174,14 +2304,32 @@ function getD1Filtered(){
   const tlF =getSelectedMS('ms-d1-tl');
   const apmF=getSelectedMS('ms-d1-apm');
   let data=[...d1Stats];
-  // TL cascade → APM
   if(tlF.length){
-    const apmUnderTL=new Set();
-    data.filter(p=>tlF.includes(p.tl)).forEach(p=>apmUnderTL.add(p.apm));
     data=data.filter(p=>tlF.includes(p.tl));
+    // Cascade: rebuild APM dropdown to only show APMs under selected TLs
+    const apmsUnderTL=[...new Set(data.map(p=>p.apm).filter(Boolean))].sort();
+    const apmList=document.getElementById('ms-d1-apm-list');
+    if(apmList){
+      const prevSel=getSelectedMS('ms-d1-apm');
+      apmList.innerHTML=apmsUnderTL.map(a=>`<label class="ms-item"><input type="checkbox" value="${a}" ${prevSel.length===0||prevSel.includes(a)?'checked':''} onchange="msItemChange('ms-d1-apm');renderD1Stats()"> ${a}</label>`).join('');
+      msUpdateTrigger('ms-d1-apm');
+    }
+  }else{
+    // Reset APM dropdown to all APMs
+    const allAPMs=[...new Set(d1Stats.map(p=>p.apm).filter(Boolean))].sort();
+    const apmList=document.getElementById('ms-d1-apm-list');
+    if(apmList&&apmList.children.length!==allAPMs.length){
+      apmList.innerHTML=allAPMs.map(a=>`<label class="ms-item"><input type="checkbox" value="${a}" checked onchange="msItemChange('ms-d1-apm');renderD1Stats()"> ${a}</label>`).join('');
+      msUpdateTrigger('ms-d1-apm');
+    }
   }
-  if(apmF.length) data=data.filter(p=>apmF.includes(p.apm));
-  return data.sort((a,b)=>b.bsc-a.bsc);
+  const apmF2=getSelectedMS('ms-d1-apm');
+  if(apmF2.length) data=data.filter(p=>apmF2.includes(p.apm));
+  // Enrich with QTD BSC from allPAs (the "Balance Score Card Trend")
+  const qtdMap={};
+  if(window.allPAs) allPAs.forEach(p=>qtdMap[p.name.trim().toLowerCase()]=p.bsc);
+  data=data.map(p=>({...p,bscTrend:qtdMap[p.name.trim().toLowerCase()]||0}));
+  return data.sort((a,b)=>(b.bscTrend||b.bsc||0)-(a.bscTrend||a.bsc||0));
 }
 
 function renderD1Stats(){
@@ -2195,16 +2343,16 @@ function renderD1Stats(){
   document.getElementById('d1-count').textContent=data.length+' PAs';
 
   // Cards
-  const avgBSC=data.length?data.reduce((s,p)=>s+p.bsc,0)/data.length:0;
+  const avgBSC=data.length?data.reduce((s,p)=>s+(p.bscTrend||p.bsc||0),0)/data.length:0;
   const avgCC=data.length?data.reduce((s,p)=>s+p.cc,0)/data.length:0;
   const avgDials=data.length?data.reduce((s,p)=>s+p.dials,0)/data.length:0;
-  const g71=data.filter(p=>p.bsc>=71).length;
-  const g60=data.filter(p=>p.bsc>=60&&p.bsc<71).length;
-  const r59=data.filter(p=>p.bsc<60).length;
+  const g71=data.filter(p=>(p.bscTrend||p.bsc||0)>=71).length;
+  const g60=data.filter(p=>{const b=p.bscTrend||p.bsc||0;return b>=60&&b<71;}).length;
+  const r59=data.filter(p=>(p.bscTrend||p.bsc||0)<60).length;
   document.getElementById('d1-cards').innerHTML=`
     <div class="card blue"><div class="card-label">📅 D-1 Date</div><div class="card-value" style="font-size:16px">${d1DateLabel||'—'}</div></div>
     <div class="card"><div class="card-label">👥 PAs Shown</div><div class="card-value">${data.length}</div></div>
-    <div class="card blue"><div class="card-label">📊 Avg BSC (D-1)</div><div class="card-value">${Number(avgBSC*10).toFixed(1)/10}</div></div>
+    <div class="card blue"><div class="card-label">📊 Avg BSC (D-1)</div><div class="card-value">${avgBSC.toFixed(1)}</div></div>
     <div class="card green"><div class="card-label">✅ BSC 71+</div><div class="card-value">${g71}</div></div>
     <div class="card"><div class="card-label">⚠ BSC 60–70</div><div class="card-value">${g60}</div></div>
     <div class="card red"><div class="card-label">❌ BSC &lt;60</div><div class="card-value">${r59}</div></div>
@@ -2368,7 +2516,7 @@ async function draftEmail(){
   const key=(document.getElementById('api-key-input').value.trim())||localStorage.getItem('anthropic-key')||'';
   if(!key){showToast('Enter your Anthropic API key above');return;}
   const btn=event.target;btn.textContent='Drafting…';btn.disabled=true;
-  const prompt=`Write a coaching email (under 180 words) for ${p.name}, a sales advisor at Emeritus.\nBSC: ${fmt1(p.bsc)} (min gate: 60) | Rank: ${p.rank}/${allPAs.length} | ${p.eligible?'Eligible — '+fmtINR(p.incentive):'NOT ELIGIBLE'}\nProd Days: ${p.prodDays}/${p.pNeed||44} (${Math.round((p.prodPct||0)*100)}%)\nConnected Calls: ${fmt1(p.cc)} vs 21 target | First Call AHT: ${Math.round(p.aht)}s vs 780s | TTFA: ${Math.round((p.ttfa||0)*100)}% vs 95% | Talk Time: ${fmt1(p.ptt)}min vs 145min\n\nAcknowledge one positive, name their single biggest opportunity with one actionable tip, set a weekly expectation. Warm, direct, specific — no generic opener. Email body only.`;
+  const prompt=`Write a coaching email (under 180 words) for ${p.name}, a sales advisor at Emeritus.\nBSC: ${fmt1(p.bsc)} (min gate: 60) | Rank: ${p.rank}/${allPAs.length} | ${p.eligible?'Eligible — '+fmtINR(p.incentive):'NOT ELIGIBLE'}\nProd Days: ${p.prodDays}/${p.pNeed||44} (${Math.round((p.prodPct||0)*100)}%)\nConnected Calls: ${Math.round(p.cc)} vs 21 target | First Call AHT: ${Math.round(p.aht)}s vs 780s | TTFA: ${Math.round((p.ttfa||0)*100)}% vs 95% | Talk Time: ${fmt1(p.ptt)}min vs 145min\n\nAcknowledge one positive, name their single biggest opportunity with one actionable tip, set a weekly expectation. Warm, direct, specific — no generic opener. Email body only.`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
@@ -2431,6 +2579,164 @@ function copyHuddle(){
   const box=document.getElementById('huddle-box');if(!box)return;
   try{const item=new ClipboardItem({'text/html':new Blob([box.outerHTML],{type:'text/html'}),'text/plain':new Blob([box.innerText],{type:'text/plain'})});navigator.clipboard.write([item]).then(()=>showToast('Huddle copied — paste into Teams'));}
   catch(e){showToast('Use Chrome for rich-text copy');}
+}
+
+function copyAdvisorExcel(){
+  const p=window._curAdvisorPA;
+  if(!p){showToast('Select a PA first.');return;}
+
+  const T=window.TARGETS||{cc:21,aht:780,ttfa:0.95,ptt:145};
+  const remaining=p.remaining||Math.max(0,(p.totalDays||58)-31);
+  const prodDays=p.prodDays||0;
+  const pNeed=p.pNeed||Math.ceil(0.75*(p.totalDays||58));
+  const baseBsc=window.bscOf?bscOf(p):p.bsc;
+
+  // Status banner
+  const st=window.coachBanner?coachBanner(p):{bg:'#FCEAE8',fg:'#9B2B1F',icon:'⚠',title:'Not Eligible',sub:'See details below'};
+
+  // Metric rows
+  const MLIST=[
+    {key:'cc', label:'Connected Calls', actual:Math.round(p.cc), target:T.cc},
+    {key:'aht',label:'AHT First Call (s)', actual:Math.round(p.aht), target:T.aht},
+    {key:'ttfa',label:'Adjusted TTFA', actual:Math.round((p.ttfa||0)*100)+'%', target:'95%', tgtNum:T.ttfa, isPercent:true},
+    {key:'ptt', label:'Pure Talk Time (min)', actual:Math.round(p.ptt), target:T.ptt},
+  ];
+
+  function metricRows(){
+    return MLIST.map(m=>{
+      const tgt=m.tgtNum||m.target;
+      const actualNum=m.isPercent?(p[m.key]||0):p[m.key];
+      const frac=Math.min(actualNum/tgt,1);
+      const isMax=frac>=1;
+      const gain=(1-frac)*25;
+      const newBsc=isMax?baseBsc:baseBsc+gain;
+      const newRank=isMax?p.rank:(window.simRank?simRank(p,newBsc):p.rank);
+      const newInc=window.getSlab?getSlab(newRank):0;
+      const delta=newInc-(p.incentive||0);
+
+      const barColor=isMax?'#4A90D9':frac>=0.8?'#0D6E4A':frac>=0.6?'#FFC000':'#C0392B';
+      const gainColor=isMax?'#1A6FB5':'#C0392B';
+      const gainLabel=isMax?'Maxed \u2713':`+${gain.toFixed(1)} pts \u2192 target`;
+      const rankNote=!isMax&&newRank<p.rank?`\u2192 Rank ${p.rank}\u2192${newRank} \u00b7 ${delta>0?'+\u20b9'+delta.toLocaleString('en-IN'):(newInc>0?'\u20b9'+newInc.toLocaleString('en-IN'):'no slab')}`:
+                     isMax?'Metric is maxed \u2014 no further BSC gain here':'';
+
+      return`<tr>
+        <td style="padding:8px 12px;font-weight:600;font-size:11pt;color:#000;width:160px;white-space:nowrap">${m.label}</td>
+        <td style="padding:4px 8px;width:250px">
+          <table style="width:100%;height:8px;border-collapse:collapse"><tr>
+            <td style="background:${barColor};width:${Math.round(frac*100)}%"></td>
+            <td style="background:#e8e8e0;width:${Math.round((1-frac)*100)}%"></td>
+          </tr></table>
+        </td>
+        <td style="padding:4px 8px;text-align:right;color:#555;font-size:10pt;white-space:nowrap">${m.actual} / ${m.target}</td>
+        <td style="padding:4px 12px;text-align:right;font-weight:600;color:${gainColor};font-size:10pt;white-space:nowrap">${gainLabel}</td>
+      </tr>
+      ${rankNote?`<tr><td></td><td colspan="3" style="padding:2px 8px 8px 8px;font-size:10pt;color:#0D6E4A">${rankNote}</td></tr>`:''}`;
+    }).join('');
+  }
+
+  // Productive days
+  const prodGap=Math.max(0,pNeed-prodDays);
+  const prodRate=remaining>0?(prodGap/remaining).toFixed(1):'—';
+  const prodImpossible=prodGap>remaining;
+  const prodHtml=!p.prodElig?`
+    <tr><td colspan="4" style="padding:0 0 8px 0">
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="background:${prodImpossible?'#FCEAE8':'#FEF7E0'};border-left:4px solid ${prodImpossible?'#E74C3C':'#F1C40F'};padding:10px 14px">
+          <div style="font-weight:700;color:${prodImpossible?'#9B2B1F':'#B07800'};font-size:11pt">📅 PRODUCTIVE DAYS COACH</div>
+          <div style="font-weight:600;font-size:11pt;margin-top:4px">${prodDays} of ${pNeed} required (${Math.round((p.prodPct||0)*100)}% \u2014 need 75%)</div>
+          <div style="font-size:10pt;color:#5A5A52;margin-top:2px">${prodImpossible?`\u26a0 Gate cannot be met \u2014 needs ${prodGap} more but only ${remaining} working days remain.`:`Needs ${prodGap} more in ${remaining} remaining \u2014 ${prodRate}/day. ${parseFloat(prodRate)<=1?'Achievable.':'Challenging but possible.'}`}</div>
+        </td></tr>
+      </table>
+    </td></tr>`:'';
+
+  // Rank trajectory
+  const imps=MLIST.map(m=>{
+    const tgtN=m.tgtNum||m.target;
+    const frac=Math.min(p[m.key]/(m.isPercent?tgtN:tgtN),1);
+    if(frac>=1)return null;
+    const gain=(1-frac)*25,nb=baseBsc+gain,nr=window.simRank?simRank(p,nb):p.rank,ni=window.getSlab?getSlab(nr):0;
+    return{...m,gain,nb,nr,ni,delta:ni-(p.incentive||0)};
+  }).filter(Boolean).sort((a,b)=>a.nr-b.nr);
+  const best=imps[0];
+
+  const ttfaContrib=Math.min(0.93/T.ttfa,1)*25;
+  const tgtBsc=best?best.nb:baseBsc;
+  const rem3=Math.max(0,tgtBsc-ttfaContrib);
+  const fracEach=rem3/(3*25);
+  const minCC=Math.ceil(fracEach*T.cc);
+  const minAHT=Math.ceil(fracEach*T.aht);
+  const minPTT=Math.ceil(fracEach*T.ptt);
+
+  const trajRows=[
+    {name:'Connected Calls',min:minCC,now:Math.round(p.cc),unit:'/day'},
+    {name:'First Call AHT',min:minAHT,now:Math.round(p.aht),unit:'s'},
+    {name:'\u2726 TTFA (floor \u2014 your control)',min:'93%',now:Math.round((p.ttfa||0)*100)+'%',easy:true},
+    {name:'Pure Talk Time',min:minPTT,now:Math.round(p.ptt)+'',unit:'min/day'},
+  ].map(m=>{
+    const nowN=parseInt(m.now),minN=parseInt(m.min);
+    const ok=!isNaN(nowN)&&!isNaN(minN)?nowN>=minN:m.easy;
+    const gap=!ok&&!isNaN(nowN)&&!isNaN(minN)?(minN-nowN):0;
+    return`<tr style="background:${m.easy?'#f0fff8':'#fff'}">
+      <td style="padding:6px 10px;font-weight:600;font-size:11pt;border:1px solid #e0e0d8;color:${m.easy?'#0D6E4A':'#000'}">${m.name}</td>
+      <td style="text-align:center;font-weight:700;font-size:12pt;border:1px solid #e0e0d8;color:${ok?'#0D6E4A':'#C0392B'}">${m.min}${m.unit&&!m.easy?' '+m.unit:''}</td>
+      <td style="text-align:center;font-size:10pt;border:1px solid #e0e0d8;color:#5A5A52">${m.now}${m.unit&&!m.easy?' '+m.unit+' avg':' avg'}</td>
+      <td style="font-size:10pt;border:1px solid #e0e0d8;color:${ok?'#0D6E4A':'#C0392B'}">${ok?'\u2713 On track':'\u2191 Gap (need +'+(gap)+m.unit+')'}</td>
+    </tr>`;
+  }).join('');
+
+  const trajHtml=best?`<tr><td colspan="4" style="padding:0 0 8px 0">
+    <table style="width:100%;border-collapse:collapse">
+      <tr><td colspan="4" style="background:#f0fff8;border-left:4px solid #0D6E4A;padding:10px 14px">
+        <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#9A9A90;margin-bottom:6px">🎯 YOUR RANK TRAJECTORY \u2014 WHAT WOULD ACTUALLY MOVE YOU</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="background:#ddd;border-radius:50%;padding:4px 9px;font-weight:700;font-size:12pt">${p.rank}</span>
+          <span style="font-size:16pt;color:#9A9A90">\u2192</span>
+          <span style="background:#0D6E4A;color:#fff;border-radius:50%;padding:4px 9px;font-weight:700;font-size:12pt">${best.nr}</span>
+          <span style="font-weight:700;color:#0D6E4A;font-size:12pt">${best.delta>0?'+\u20b9'+best.delta.toLocaleString('en-IN')+' incentive':best.ni>0?'\u20b9'+best.ni.toLocaleString('en-IN')+' slab':''}</span>
+        </div>
+        <div style="font-size:10pt;color:#5A5A52;line-height:1.6;margin-bottom:10px">Your BSC of ${p.bsc.toFixed(1)} places you at Rank ${p.rank}. Biggest drag: <strong>${best.label}</strong> \u2014 ${Math.round((1-Math.min(p[best.key]/T[best.key],1))*100)}% below target. Improving it alone pushes BSC to <strong>${best.nb.toFixed(1)}</strong>, moving you to Rank <strong>${best.nr}</strong> which would qualify for \u20b9${(best.ni/1000).toFixed(0)}K slab.</div>
+        <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#9A9A90;margin-bottom:6px">MINIMUM VALUES NEEDED EVERY REMAINING WORKING DAY (${remaining} DAYS LEFT)</div>
+        <table style="width:100%;border-collapse:collapse">
+          <tr style="background:#f4f4f0">
+            <th style="padding:5px 10px;text-align:left;font-size:9pt;color:#9A9A90;border:1px solid #e0e0d8">METRIC</th>
+            <th style="padding:5px 8px;text-align:center;font-size:9pt;color:#9A9A90;border:1px solid #e0e0d8">MINIMUM</th>
+            <th style="padding:5px 8px;text-align:center;font-size:9pt;color:#9A9A90;border:1px solid #e0e0d8">YOUR AVG</th>
+            <th style="padding:5px 8px;font-size:9pt;color:#9A9A90;border:1px solid #e0e0d8">STATUS</th>
+          </tr>
+          ${trajRows}
+        </table>
+        <div style="font-size:9pt;color:#9A9A90;margin-top:8px">\u2726 TTFA is fully in your control \u2014 target every connected call within 2 hours. Set as 93% floor. Pushing CC may reduce AHT \u2014 monitor all four together.</div>
+      </td></tr>
+    </table>
+  </td></tr>`:'';
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>body{font-family:'Segoe UI',Calibri,Arial,sans-serif;font-size:11pt;color:#000;margin:16px}table{border-collapse:collapse;width:100%}</style>
+  </head><body>
+  <div style="font-size:16pt;font-weight:700;margin-bottom:2px">${p.name}</div>
+  <div style="font-size:10pt;color:#5A5A52;margin-bottom:12px">Rank ${p.rank} \u00b7 BSC ${p.bsc.toFixed(1)} \u00b7 ${p.shiftType||'ROW'} \u00b7 ${p.totalDays||58} WD \u00b7 ${p.eligible?'\u2713 Eligible':'\u2717 Not Eligible'} \u00b7 \u20b9${(p.incentive||0).toLocaleString('en-IN')}</div>
+  <table style="margin-bottom:10px">
+    <tr><td style="background:${st.bg};border-left:4px solid ${st.fg};padding:10px 14px">
+      <div style="font-weight:700;color:${st.fg};font-size:11pt">${st.icon} ${st.title}</div>
+      <div style="color:${st.fg};font-size:10pt;margin-top:3px;opacity:.85">${st.sub}</div>
+    </td></tr>
+  </table>
+  <table>
+    <tr><td colspan="4" style="background:#f4f4f0;font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#9A9A90;padding:8px 12px;border-bottom:1px solid #e8e8e0">📊 METRIC IMPACT \u2014 WHAT MOVES YOUR BSC?</td></tr>
+    ${metricRows()}
+    ${prodHtml}
+    ${trajHtml}
+  </table>
+  <p style="font-size:9pt;color:#aaa;margin-top:16px">Generated: ${new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})} \u00b7 Emeritus Performance Hub</p>
+  </body></html>`;
+
+  if(window.copyHTML){copyHTML(html,`${p.name} coaching panel copied \u2014 paste into Teams or Excel.`);}
+  else{
+    const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');
+    a.href=url;a.download='Coach_'+p.name.replace(/\s+/g,'_')+'.xls';a.click();URL.revokeObjectURL(url);
+  }
 }
 
 function resetDashboard(){
@@ -2755,5 +3061,215 @@ function _renderRankPredictor(){
 })();
 </script>
 <!-- ═══ END PATCH BLOCK 2 ════════════════════════════════════════ -->
+<script>
+
+// ══════════════════════════════════════════════════════════════════
+// PROJECTION ENGINE — smart rule-based coaching logic
+// ══════════════════════════════════════════════════════════════════
+function renderProjectionEngine(p){
+  const existing=document.getElementById('proj-engine-panel');
+  if(existing)existing.remove();
+  if(!p)return;
+  const out=document.getElementById('advisor-output');
+  if(!out)return;
+
+  const T=window.TARGETS||{cc:21,aht:780,ttfa:0.95,ptt:145};
+  const prodDays=p.prodDays||0;
+  const remaining=p.remaining||Math.max(0,(p.totalDays||58)-31);
+  const pNeed=p.pNeed||Math.ceil(0.75*(p.totalDays||58));
+
+  // ── Determine Goal: QUALIFY (not eligible) or BEAT COMPETITOR (eligible) ──
+  const nextPA=window.allPAs?allPAs.find(q=>q.rank===p.rank-1):null;
+  const goalIsCompetitor=p.eligible&&nextPA&&nextPA.bsc>p.bsc;
+  const goalIsQualify=!p.eligible;
+  const goalLabel=goalIsCompetitor
+    ?`Beat ${nextPA.name.split(' ')[0]} (Rank ${p.rank-1}, BSC ${nextPA.bsc.toFixed(1)})`
+    :goalIsQualify?`Qualify for Incentive (BSC gate: 60)`:null;
+
+  // ── Compute target daily BSC for the active goal ──
+  // BSC = weighted avg over productive days
+  // To reach targetEnd by EOQ: solve targetDailyBsc
+  function calcDailyTarget(targetEnd){
+    if(remaining<=0)return null;
+    const acc=p.bsc*prodDays;
+    const needed=(targetEnd*(prodDays+remaining)-acc)/remaining;
+    return needed;
+  }
+
+  const bscGateTarget=calcDailyTarget(60);       // to qualify
+  const compTarget=nextPA?calcDailyTarget(nextPA.bsc+0.5):null; // to beat competitor
+
+  const activeTarget=goalIsCompetitor?compTarget:goalIsQualify?bscGateTarget:null;
+  const impossible=activeTarget!==null&&activeTarget>100;
+  const alreadyThere=activeTarget!==null&&activeTarget<=p.bsc;
+  const effectiveTarget=impossible?100:activeTarget||70;
+
+  // ── Core formula: given daily BSC target, find minimum per-metric values ──
+  // BSC = (cc/21 + aht/780 + ttfa/0.95 + ptt/145) × 25
+  // TTFA anchored at 95%: contributes exactly 25 pts
+  // Remaining 3 metrics must jointly contribute: (effectiveTarget/25 - 1.0)
+  // This is the sum of their fractions × 25
+
+  function calcMinMetrics(dailyBscTarget,ccFrac){
+    // ccFrac: how much of the remaining burden CC takes (0.33 = balanced, 0.5 = CC-heavy, etc.)
+    const totalFrac=Math.min(dailyBscTarget/25,4.0); // total fraction sum (max 4.0)
+    const ttfaFrac=1.0;  // TTFA always 1.0
+    const remaining3Frac=Math.max(0,totalFrac-ttfaFrac); // what 3 metrics share
+    const ccFracNeeded=remaining3Frac*ccFrac;
+    const ahtFracNeeded=remaining3Frac*(1-ccFrac)/2;
+    const pttFracNeeded=remaining3Frac*(1-ccFrac)/2;
+    return{
+      cc:Math.ceil(ccFracNeeded*T.cc*10)/10,
+      aht:Math.ceil(ahtFracNeeded*T.aht),
+      ttfa:0.95,
+      ptt:Math.ceil(pttFracNeeded*T.ptt*10)/10,
+      dailyBsc:dailyBscTarget,
+    };
+  }
+
+  const balanced=calcMinMetrics(effectiveTarget,0.333);   // CC carries 1/3
+  const ccFocus=calcMinMetrics(effectiveTarget,0.60);     // CC carries 60%, AHT/PTT lighter
+  const ahtSafe=calcMinMetrics(effectiveTarget,0.25);     // CC lighter, AHT/PTT share more
+
+  // CC per day now
+  const ccPerDayNow=p.cc;   // already daily average
+  const pttPerDayNow=p.ptt; // already daily average
+
+  // ── Metric status badges ──
+  function badge(cur,min,label){
+    if(cur>=min)return`<span style="font-size:10px;font-weight:600;color:#0D6E4A;background:#E6F4EF;padding:1px 6px;border-radius:10px">✓ On track</span>`;
+    const gap=((min-cur)/min*100).toFixed(0);
+    return`<span style="font-size:10px;font-weight:600;color:#9B2B1F;background:#FCEAE8;padding:1px 6px;border-radius:10px">↑ Need +${gap}% more ${label}</span>`;
+  }
+
+  // ── Trade-off intelligence ──
+  // If CC goes up, AHT may drop. Quantify the impact.
+  const ccGainFrac=Math.max(0,(balanced.cc-ccPerDayNow)/T.cc);
+  const ahtDropEstimate=ccGainFrac*0.15; // rough: each 1% CC gain → 0.15% AHT drop
+  const ahtWithTrade=p.aht*(1-ahtDropEstimate);
+  const ahtFracWithTrade=Math.min(ahtWithTrade/T.aht,1);
+  const bscWithTrade=(Math.min(balanced.cc/T.cc,1)+ahtFracWithTrade+1+Math.min(balanced.ptt/T.ptt,1))*25;
+
+  // ── Productive days alert ──
+  const prodGap=Math.max(0,pNeed-prodDays);
+  const prodRate=remaining>0?prodGap/remaining:null;
+  let prodAlert='';
+  if(!p.prodElig){
+    const imp=prodGap>remaining;
+    prodAlert=`<div style="background:${imp?'#FCEAE8':'#FEF9E7'};border-left:3px solid ${imp?'#E74C3C':'#F1C40F'};padding:8px 10px;border-radius:0 6px 6px 0;font-size:11px;color:${imp?'#7B0000':'#5A5A52'};margin-bottom:12px;line-height:1.6">
+      <strong>📅 Productive Days Gate:</strong> Need ${prodGap} more in ${remaining} remaining days
+      ${prodRate!==null?`(${prodRate.toFixed(1)}/day required)`:''}.
+      ${imp?'<br>⚠ <strong>Gate cannot be met.</strong> BSC targets below are still useful for incentive rank positioning.':''}
+    </div>`;
+  }
+
+  // ── Scenario row builder ──
+  function scenarioRow(label,mins,highlight){
+    const rows=[
+      {name:'Connected Calls',unit:'/day',min:mins.cc,now:ccPerDayNow,
+       note:'More CC = more chances to connect. Affects talk time.',color:'#1A6FB5'},
+      {name:'First Call AHT',unit:'s',min:mins.aht,now:p.aht,
+       note:'Longer first calls signal deeper engagement. Avoid rushing.',color:'#9B2B1F'},
+      {name:'Adjusted TTFA',unit:'%',min:95,now:Math.round(p.ttfa*100),
+       note:'✦ Fully controllable. Attempt TTFA within 2hrs of connection.',color:'#0D6E4A',easy:true},
+      {name:'Pure Talk Time',unit:'min/day',min:mins.ptt,now:pttPerDayNow,
+       note:'Longer quality conversations. Improved by AHT × CC.',color:'#8E44AD'},
+    ];
+    return`<div style="border:1px solid ${highlight?'#1F3864':'#e0e0d8'};border-radius:8px;overflow:hidden;margin-bottom:10px">
+      <div style="background:${highlight?'#1F3864':'#f4f4f0'};color:${highlight?'#fff':'#5A5A52'};padding:7px 12px;font-size:11px;font-weight:700">${label}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:#f8f8f5;color:#9A9A90;font-size:10px;font-weight:700">
+          <th style="padding:6px 10px;text-align:left;width:36%">METRIC</th>
+          <th style="padding:6px 8px;text-align:center">MINIMUM/DAY</th>
+          <th style="padding:6px 8px;text-align:center">CURRENT AVG</th>
+          <th style="padding:6px 8px;text-align:left">STATUS</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((r,i)=>`<tr style="border-top:1px solid #f0f0e8;background:${r.easy?'#f0fff8':'#fff'}">
+            <td style="padding:8px 10px;font-weight:600;color:${r.color}">
+              ${r.easy?'✦ ':''}${r.name}
+              <div style="font-size:10px;font-weight:400;color:#9A9A90;margin-top:1px">${r.note}</div>
+            </td>
+            <td style="padding:8px;text-align:center;font-weight:700;font-size:15px;color:${r.color}">${r.min}${r.unit==='%'?'%':''}<span style="font-size:10px;font-weight:400;color:#9A9A90"> ${r.unit!=='%'?r.unit:''}</span></td>
+            <td style="padding:8px;text-align:center;color:#5A5A52">${typeof r.now==='number'?r.now.toFixed(1):r.now}${r.unit==='%'?'%':' '+r.unit}</td>
+            <td style="padding:8px">${badge(r.now,r.min,r.unit==='%'?'':r.unit)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  // ── Trade-off warning ──
+  const tradeoffHtml=`<div style="background:#FEF9E7;border-left:3px solid #F1C40F;padding:10px 12px;border-radius:0 6px 6px 0;font-size:11px;color:#5A5A52;margin-bottom:10px;line-height:1.7">
+    <strong>⚠ Metric Interconnection — Read this carefully</strong><br>
+    Pushing <strong>Connected Calls</strong> higher tends to mean shorter calls (calls end faster), which <strong>reduces First Call AHT</strong>.<br>
+    Estimate: if CC improves to ${balanced.cc.toFixed(0)}/day, AHT may drop ~${Math.round(ahtDropEstimate*p.aht)}s to <strong>~${Math.round(ahtWithTrade)}s</strong>.<br>
+    At that trade-off, projected daily BSC ≈ <strong>${bscWithTrade.toFixed(1)}</strong>
+    ${bscWithTrade>=effectiveTarget?'<span style="color:#0D6E4A;font-weight:600"> ✓ Still achieves goal</span>':'<span style="color:#C0392B;font-weight:600"> ✗ Misses goal — AHT recovery needed</span>'}.<br>
+    <strong>TTFA is always safe to maximise</strong> — it does not affect call length.
+  </div>`;
+
+  // ── Header with goal ──
+  const headerHtml=!goalLabel
+    ?`<div style="background:#E6F4EF;color:#0D6E4A;padding:10px 14px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:12px">✅ Already eligible and ranked. Goal: Maintain BSC ${p.bsc.toFixed(1)} and hold rank ${p.rank}.</div>`
+    :impossible
+    ?`<div style="background:#FCEAE8;color:#7B0000;padding:10px 14px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:12px">⚠ Goal: ${goalLabel} — requires daily BSC of ${effectiveTarget.toFixed(1)} (capped at 100; targets below show what's needed for maximum effort).</div>`
+    :`<div style="background:#1F3864;color:#fff;padding:10px 14px;border-radius:6px;font-size:12px;font-weight:600;margin-bottom:12px">🎯 Goal: ${goalLabel} — requires daily BSC of <strong>${effectiveTarget.toFixed(1)}</strong> for ${remaining} remaining working days.</div>`;
+
+  const panel=document.createElement('div');
+  panel.id='proj-engine-panel';
+  panel.style.cssText='margin-top:14px;background:#fff;border:1px solid #e0e0d8;border-radius:8px;overflow:hidden';
+  panel.innerHTML=`
+    <div style="background:#1F3864;color:#fff;padding:10px 16px;font-size:12px;font-weight:700;letter-spacing:.4px">
+      🧠 Projection Engine — What You Need Each Day
+    </div>
+    <div style="padding:14px 16px">
+      ${prodAlert}
+      ${headerHtml}
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#9A9A90;margin-bottom:8px">Minimum Daily Values — 3 Scenarios</div>
+      ${scenarioRow(`Scenario A — Balanced (each metric carries equal weight)`,balanced,false)}
+      ${scenarioRow(`Scenario B — CC Focus (push calls, AHT/PTT floor is lower)`,ccFocus,true)}
+      ${scenarioRow(`Scenario C — Quality Focus (fewer calls, longer/deeper engagement)`,ahtSafe,false)}
+      ${tradeoffHtml}
+      ${goalIsCompetitor&&nextPA?`<div style="background:#f0fff8;border:.5px solid #b3d9c9;border-radius:6px;padding:10px 12px;font-size:12px;margin-top:4px">
+        <strong>🏇 Rank ${p.rank-1} target:</strong> ${nextPA.name} has BSC ${nextPA.bsc.toFixed(1)}. You need ${effectiveTarget.toFixed(1)} BSC/day for ${remaining} days to overtake them.
+        ${window.fmtINR&&window.getSlab?` Achieving Rank ${p.rank-1} unlocks <strong>${fmtINR(getSlab(p.rank-1))}</strong>.`:''}
+      </div>`:''}
+    </div>`;
+  out.appendChild(panel);
+}
+
+// Hook into renderAdvisor — run projection engine after coaching panel
+(function(){
+  const _origAdv=window.renderAdvisor;
+  if(_origAdv&&!_origAdv._projPatched){
+    window.renderAdvisor=function(){
+      _origAdv.apply(this,arguments);
+      const name=document.getElementById('adv-pa-select')?document.getElementById('adv-pa-select').value:'';
+      if(name&&window.allPAs){
+        const pa=allPAs.find(x=>x.name===name);
+        if(pa){
+          renderProjectionEngine(pa);
+          renderRankPredictor&&renderRankPredictor(pa);
+        }
+      }
+    };
+    window.renderAdvisor._projPatched=true;
+  }
+  // Also hook the PA select change
+  const sel=document.getElementById('adv-pa-select');
+  if(sel) sel.addEventListener('change',function(){
+    setTimeout(function(){
+      const name=sel.value;
+      if(name&&window.allPAs){
+        const pa=allPAs.find(x=>x.name===name);
+        if(pa) renderProjectionEngine(pa);
+      }
+    },120);
+  });
+})();
+
+
+</script>
 </body>
 </html>
